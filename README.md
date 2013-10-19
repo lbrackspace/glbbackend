@@ -19,7 +19,6 @@ INSTALLATION
 9. sudo pdns/pdns start
 
 DEBUG
-
 1. Set these environment variables, then run the configure, make commands.
 
 export CFLAGS="-O0 -ggdb -Wall"
