@@ -9,10 +9,6 @@
 #include <boost/algorithm/string.hpp>
 #include "glbbackend.hh"
 
-GLBBackend::GLBBackend(const string &suffix="")
-{
-}
-
 bool GLBBackend::list(const string &target, int id) {
   return false; // we don't support AXFR
 }
