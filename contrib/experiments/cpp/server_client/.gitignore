@@ -1,0 +1,8 @@
+*.o
+.dep.inc
+boosttests
+server
+client
+lookup
+*.mk
+nbproject/*
