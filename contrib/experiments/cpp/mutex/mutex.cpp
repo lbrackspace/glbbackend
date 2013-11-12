@@ -127,8 +127,8 @@ void sharedMutexThread(int nThreads, int nIterations, random::mt19937 rng, rando
     for (int i = 0; i < nIterations; i++) {
         mi = dist(rng);
         shared_mutex *m = (*mutexes)[mi];
-        m->lock_shared();
+        m->lock();
         counters[mi]++;
-        m->unlock_shared();
+        m->unlock();
     }
 }
