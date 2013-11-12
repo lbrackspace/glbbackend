@@ -11,7 +11,7 @@
 #include<cstdlib>
 #include<unistd.h>
 #include<boost/unordered_map.hpp>
-
+#include<boost/interprocess/mapped_region.hpp>
 
 #include"DemoUtils.h"
 #include"ThreadManager.h"
@@ -392,12 +392,13 @@ string showsizeof() {
             << "sizeof(vector<double *>):    " << setw(4) << sizeof (vector<double *>) << endl
             << "sizeof(shared_ptr<string>):  " << setw(4) << sizeof (shared_ptr<string>) << endl
             << "sizeof(shared_ptr<double>):  " << setw(4) << sizeof (shared_ptr<double>) << endl
-            << "sizeof(unordered_map):       " << setw(4) << sizeof(unordered_map<string,string>) << endl
+            << "sizeof(unordered_map):       " << setw(4) << sizeof (unordered_map<string, string>) << endl
             << "sizeof(ring_buffer):         " << setw(4) << sizeof (ring_buffer) << endl
             << "sizeof(boost::ip::tcp::resolver " << setw(4) << sizeof (boost::asio::ip::tcp::resolver) << endl
             << "sizeof(boost::ip::tcp::resolver::iterator " << setw(4) << sizeof (boost::asio::ip::tcp::resolver::iterator) << endl
             << endl
-            << "boost::thread::hardware_concurrency(): " << setw(4) << boost::thread::hardware_concurrency() << endl;
+            << "boost::thread::hardware_concurrency(): " << setw(4) << boost::thread::hardware_concurrency() << endl
+            << "mapped_region::get_page_size():        " << setw(4) << boost::interprocess::mapped_region::get_page_size() << endl;
 
     return os.str();
 }
