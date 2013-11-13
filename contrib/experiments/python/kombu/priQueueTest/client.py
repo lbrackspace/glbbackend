@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from kombu.pools import producers
 from random import choice
 
