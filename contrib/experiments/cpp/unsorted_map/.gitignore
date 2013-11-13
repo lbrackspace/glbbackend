@@ -3,7 +3,4 @@
 *.mk
 nbproject/*
 !Makefile
-boosttests
-lookup
-client
-server
+unsorted_map

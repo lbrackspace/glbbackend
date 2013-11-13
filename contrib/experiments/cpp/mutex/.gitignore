@@ -6,4 +6,4 @@ nbproject/*
 .cproject
 .project
 .settings/*
-
+!Makefile

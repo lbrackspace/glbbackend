@@ -2,9 +2,9 @@
 cppdemo
 boosttests
 nbproject/*
-cppdemo-Makefile.mk
+*.mk
 .dep.inc
 .cproject
 .project
 .settings/*
-Makefile-maindemo.mk
+!Makefile
