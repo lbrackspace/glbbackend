@@ -6,6 +6,11 @@
 #include<boost/thread.hpp>
 #include<string>
 #include<vector>
+#include"IPRecord.h"
+
+enum GLBType {
+    RANDOM, GEOIP, WEIGHTED, NONE
+};
 
 class GlbContainer {
 private:
@@ -14,10 +19,10 @@ private:
 
     boost::mutex nLookupsLock;
     boost::shared_mutex lock;
-    boost::unordered_map<std::string, std::vector<std::string> > geoIpv4Records;
-    boost::unordered_map<std::string, std::vector<std::string> > geoIpv6Records;
-    std::vector<std::string> ipv6Records;
-    std::vector<std::string> ipv4Records;
+    boost::unordered_map<std::string, std::vector<boost::shared_ptr<IPRecord> > > geoIpv4Records;
+    boost::unordered_map<std::string, std::vector<boost::shared_ptr<IPRecord> > > geoIpv6Records;
+    std::vector<boost::shared_ptr<IPRecord> > ipv6Records;
+    std::vector<boost::shared_ptr<IPRecord> > ipv4Records;
     std::vector<int> ipv4Weights;
     std::vector<int> ipv6Weights;
 
@@ -36,18 +41,13 @@ public:
     };
 
     void incNLookups() {
-        nLookupsLock.lock();
+        boost::lock_guard<boost::mutex> lock(nLookupsLock);
         nLookups++;
-        nLookupsLock.unlock();
-
     }
 
     long getNLookups() {
-        long out;
-        nLookupsLock.lock();
-        out = nLookups;
-        nLookupsLock.unlock();
-        return out;
+        boost::lock_guard<boost::mutex> lock(nLookupsLock);
+        return nLookups;
     }
 };
 

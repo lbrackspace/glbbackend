@@ -1,8 +1,8 @@
 *.o
 .dep.inc
-boosttests
-server
-client
-lookup
 *.mk
 nbproject/*
+boosttests
+lookup
+client
+server

@@ -9,6 +9,7 @@
 
 #include"ring_buffer.h"
 #include"GlbContainer.h"
+#include"IPRecord.h"
 
 using namespace boost;
 using namespace std;
@@ -48,6 +49,11 @@ BOOST_AUTO_TEST_CASE(ring_buffer_should_strip_all_line_feeds_too) {
     BOOST_CHECK(strVector[5].compare("blah") == 0);
 }
 
+BOOST_AUTO_TEST_CASE(check_IPRecordType_Enum) {
+    string wtf;
+}
+
 BOOST_AUTO_TEST_CASE(show_size_of_Glb) {
-    std::cout << "sizeof(GlbContainer): " << sizeof (GlbContainer) << std::endl;
+    std::cout << "sizeof(GlbContainer):: " << sizeof (GlbContainer) << std::endl;
+    std::cout << "sizeof(IPRecord):      " << sizeof (IPRecord) << std::endl;
 }

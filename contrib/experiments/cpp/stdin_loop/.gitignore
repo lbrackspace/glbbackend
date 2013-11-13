@@ -1,0 +1,5 @@
+*.o
+.dep.inc
+*.mk
+nbproject/*
+stdin_loop
