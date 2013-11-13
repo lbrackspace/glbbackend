@@ -21,6 +21,6 @@ std::string ipRecordTypeToString(const IPRecordType rt) {
     }
 }
 
-IPRecordType stringToIPRecordType(const std::string& rts){
-    return -1;
+IPRecordType stringToIPRecordType(const std::string& rts) {
+    return IPv4;
 }
