@@ -5,7 +5,7 @@
 #include<boost/unordered_map.hpp>
 
 enum IPRecordType {
-    IPv4 = 1, IPv6 = 2
+    NONE = 0, IPv4 = 1, IPv6 = 2
 };
 
 class IPRecord {

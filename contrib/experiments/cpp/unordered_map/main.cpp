@@ -7,9 +7,14 @@ const int LINE_SIZE = 1024;
 
 using namespace std;
 
-void help(ostream &os){
+void help(ostream &os) {
     os << "help #displays this help menu" << endl
-       << "exit #terminates this program" << endl;
+            << "clearmap #clear map<string,string> strMap object" << endl
+            << "put <key> <val> #put the key value in the map<string,string> strMap object" << endl
+            << "get <key> #Get value in map map<string,string> strMap object" << endl
+            << "keys #List keys in map<string,string> strMap object" << endl
+            << "dkey #Delete the key from the map<string,string> strMap object" << endl
+            << "exit #terminates this program" << endl;
 }
 
 int string2vector(const string& strIn, vector<string>& strVector, char delim) {
@@ -41,30 +46,30 @@ int string2vector(const string& strIn, vector<string>& strVector, char delim) {
     return nStrings;
 }
 
-int main(int argc,char **argv){
+int main(int argc, char **argv) {
     const string prompt("Silly Shell> ");
     boost::shared_array<char> cmd(new char[LINE_SIZE + 1]);
     vector<string> cmdArgs;
     int nArgs;
 
-    do{
-        try{
+    do {
+        try {
             cout << prompt;
             cmdArgs.clear();
-            cin.getline(cmd.get(),LINE_SIZE);
-            nArgs = string2vector(cmd.get(),cmdArgs,' ');
-            if(nArgs >= 1 && cmdArgs[0].compare("help")==0){
+            cin.getline(cmd.get(), LINE_SIZE);
+            nArgs = string2vector(cmd.get(), cmdArgs, ' ');
+            if (nArgs >= 1 && cmdArgs[0].compare("help") == 0) {
                 help(cout);
-            }else if(nArgs >= 1 && cmdArgs[0].compare("exit")==0){
+            } else if (nArgs >= 1 && cmdArgs[0].compare("exit") == 0) {
                 break;
-            }else{
+            } else {
                 cout << "Unrecognized command  use help command for help" << endl;
             }
 
-        }catch(std::exception& ex){
+        } catch (std::exception& ex) {
             cout << "Exception: " << ex.what() << endl;
         }
-    }while(!cin.eof());
+    } while (!cin.eof());
     return 0;
 }
 

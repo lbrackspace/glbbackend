@@ -8,6 +8,7 @@
 boost::unordered_map<std::string, IPRecordType> stringToRecordMap = boost::assign::map_list_of("IPv4", IPv4)("IPv6", IPv6);
 
 std::string IPRecord::to_string() {
+    return std::string("");
 }
 
 std::string ipRecordTypeToString(const IPRecordType rt) {
@@ -22,5 +23,5 @@ std::string ipRecordTypeToString(const IPRecordType rt) {
 }
 
 IPRecordType stringToIPRecordType(const std::string& rts) {
-    return IPv4;
+    return NONE;
 }
