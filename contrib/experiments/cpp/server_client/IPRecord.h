@@ -4,18 +4,22 @@
 #include<string>
 #include<boost/unordered_map.hpp>
 
-enum IPRecordType {
-    NONE = 0, IPv4 = 1, IPv6 = 2
-};
+
+// Just trying to emulate a scoped enum in pre C++11
+namespace IPRecordType {
+    const int NONE = 0;
+    const int IPv4 = 1;
+    const int IPv6 = 2;
+}
 
 class IPRecord {
 private:
-    IPRecordType rType;
+    int rType;
     std::string IPaddress;
     int ttl;
 public:
 
-    IPRecord(IPRecordType rt, std::string ipa, int tl) {
+    IPRecord(int rt, std::string ipa, int tl) {
         rType = rt;
         IPaddress = ipa;
         ttl = tl;
@@ -29,9 +33,11 @@ public:
         this->rType = orig.rType;
         this->IPaddress = orig.IPaddress;
     }
-    virtual ~IPRecord();
 
-    IPRecordType getRtype() const {
+    virtual ~IPRecord() {
+    }
+
+    int getRtype() const {
         return rType;
     }
 
@@ -43,7 +49,7 @@ public:
         return ttl;
     }
 
-    void setRtype(IPRecordType rt) {
+    void setRtype(int rt) {
         rType = rt;
     }
 
@@ -55,13 +61,6 @@ public:
         IPaddress = ipa;
     }
 
-    std::string to_string();
 };
-
-std::string ipRecordTypeToString(const IPRecordType rt);
-IPRecordType stringToIPRecordType(const std::string& rts);
-
-extern boost::unordered_map<std::string, IPRecordType> stringToRecordMap;
-
 #endif	/* IPRECORD_H */
 

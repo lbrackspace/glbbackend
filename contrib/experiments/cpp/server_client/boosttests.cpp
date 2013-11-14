@@ -10,6 +10,7 @@
 #include"ring_buffer.h"
 #include"GlbContainer.h"
 #include"IPRecord.h"
+#include"GlbStaticLoader.h"
 
 using namespace boost;
 using namespace std;
@@ -50,7 +51,24 @@ BOOST_AUTO_TEST_CASE(ring_buffer_should_strip_all_line_feeds_too) {
 }
 
 BOOST_AUTO_TEST_CASE(check_IPRecordType_Enum) {
-    string wtf;
+    BOOST_CHECK(GlbStaticLoader::get().getIPRecordTypeInt("IPv4") == IPRecordType::IPv4);
+    BOOST_CHECK(GlbStaticLoader::get().getIPRecordTypeInt("IPv6") == IPRecordType::IPv6);
+    BOOST_CHECK(GlbStaticLoader::get().getIPRecordTypeInt("NONE") == IPRecordType::NONE);
+    BOOST_CHECK(GlbStaticLoader::get().getIPRecordTypeInt("XXXX") == IPRecordType::NONE);
+    BOOST_CHECK(GlbStaticLoader::get().getIPRecordTypeInt("IPv4") != IPRecordType::NONE);
+
+    BOOST_CHECK(GlbStaticLoader::get().getGlbTypeInt("RANDOM") == GlbType::RANDOM);
+    BOOST_CHECK(GlbStaticLoader::get().getGlbTypeInt("GEOIP") == GlbType::GEOIP);
+    BOOST_CHECK(GlbStaticLoader::get().getGlbTypeInt("WEIGHTED") == GlbType::WEIGHTED);
+    BOOST_CHECK(GlbStaticLoader::get().getGlbTypeInt("NONE") == GlbType::NONE);
+    BOOST_CHECK(GlbStaticLoader::get().getGlbTypeInt("XXXX") == GlbType::NONE);
+    BOOST_CHECK(GlbStaticLoader::get().getGlbTypeInt("GEOIP") != GlbType::RANDOM);
+
+}
+
+BOOST_AUTO_TEST_CASE(check_GlbStatic_to_string) {
+    IPRecord test_record(IPRecordType::IPv4, "127.0.0.1", 30);
+    BOOST_CHECK(GlbStaticLoader::get().to_string(test_record).compare("{ rType=IPv4, IPaddress=127.0.0.1, ttl=30 }") == 0);
 }
 
 BOOST_AUTO_TEST_CASE(show_size_of_Glb) {

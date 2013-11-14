@@ -8,9 +8,12 @@
 #include<vector>
 #include"IPRecord.h"
 
-enum GLBType {
-    RANDOM, GEOIP, WEIGHTED, NONE
-};
+namespace GlbType {
+    const int NONE = 0;
+    const int RANDOM = 1;
+    const int GEOIP = 2;
+    const int WEIGHTED = 3;
+}
 
 class GlbContainer {
 private:
