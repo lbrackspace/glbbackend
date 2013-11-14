@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from kombu.mixins import ConsumerMixin
 from kombu.log import get_logger
 from kombu.utils import kwdict, reprcall
@@ -82,7 +83,8 @@ if __name__ == '__main__':
 
     enable_insecure_serializers(choices=['pickle'])
 
-    with Connection('amqp://guest:guest@localhost//') as conn:
+    #with Connection('amqp://guest:guest@localhost//') as conn:
+    with Connection('amqp://guest:guest@rabbitmq-server//') as conn:
         try:
             worker = Worker(conn, max_size=10000, queue_time = 5)
             worker.run()
