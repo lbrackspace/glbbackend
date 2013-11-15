@@ -67,6 +67,9 @@ BOOST_AUTO_TEST_CASE(test_str_maps) {
     BOOST_CHECK(glbTypeToStr(GlbType::WEIGHTED).compare("WEIGHTED") == 0);
 }
 
+BOOST_AUTO_TEST_CASE(test_to_string){
+}
+
 BOOST_AUTO_TEST_CASE(show_size_of_Glb) {
     std::cout << "sizeof(GlbContainer):: " << sizeof (GlbContainer) << std::endl;
     std::cout << "sizeof(IPRecord):      " << sizeof (IPRecord) << std::endl;

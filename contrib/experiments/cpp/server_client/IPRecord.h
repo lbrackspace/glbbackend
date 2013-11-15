@@ -7,19 +7,23 @@
 
 class IPRecord {
 private:
+    int ipType;
     std::string ipAddress;
     int ttl;
+
 public:
 
-    IPRecord(int rt, std::string ipa, int tl) {
+    IPRecord(int ipt, std::string ipa, int tl) {
         ipAddress = ipa;
         ttl = tl;
+        ipType = ipt;
     }
 
     IPRecord() {
     }
 
     IPRecord(const IPRecord& orig) {
+        this->ipType = orig.ipType;
         this->ttl = orig.ttl;
         this->ipAddress = orig.ipAddress;
     }
@@ -43,12 +47,11 @@ public:
         ipAddress = ipa;
     }
 
-    std::string to_string() {
-        std::ostringstream os;
-        os << "{ ipAddress = " << ipAddress << ", ttl=" << ttl;
-        return os.str();
-    }
-
+    std::string to_string();
 };
+
+int strToIpType(std::string str);
+std::string ipTypeToStr(int ipt);
+
 #endif	/* IPRECORD_H */
 

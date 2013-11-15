@@ -10,28 +10,29 @@
 
 // Just trying to emulate a scoped enum in pre C++11
 namespace GlbType {
-    const short NONE = 0;
-    const short RANDOM = 1;
-    const short GEOIP = 2;
-    const short WEIGHTED = 3;
+    const int NONE = 0;
+    const int RANDOM = 1;
+    const int GEOIP = 2;
+    const int WEIGHTED = 3;
 }
 // Just trying to emulate a scoped enum classesin pre C++11
 namespace IPRecordType {
-    const short NONE = 0;
-    const short IPv4 = 1;
-    const short IPv6 = 2;
+    const int NONE = 0;
+    const int IPv4 = 1;
+    const int IPv6 = 2;
 }
 
 class GlbContainer {
 private:
     long nLookups;
-    short ipType;
-    short glbType;
+    int glbType;
     std::string cname;
     boost::mutex nLookupsLock;
     boost::shared_mutex lock;
-    std::vector<boost::shared_ptr<IPRecord> > ips;
-    std::vector<int> weights;
+    std::vector<boost::shared_ptr<IPRecord> > ipv4;
+    std::vector<boost::shared_ptr<IPRecord> > ipv6;
+    std::vector<int> weightsIpv4;
+    std::vector<int> weightsIpv6;
 
 public:
 
@@ -53,12 +54,11 @@ public:
         boost::lock_guard<boost::mutex> lock(nLookupsLock);
         return nLookups;
     }
+    std::string to_string();
 };
 
-short strToGlbType(std::string str);
-short strToIpType(std::string str);
-std::string ipTypeToStr(short ipt);
-std::string glbTypeToStr(short gt);
+int strToGlbType(std::string str);
+std::string glbTypeToStr(int gt);
 
 extern boost::unordered_map<std::string, boost::shared_ptr<GlbContainer > > glbMap;
 extern boost::shared_mutex glbMapLock;
