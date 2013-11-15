@@ -1,27 +1,18 @@
 #ifndef IPRECORD_H
 #define	IPRECORD_H
 
+#include<sstream>
 #include<string>
 #include<boost/unordered_map.hpp>
 
-
-// Just trying to emulate a scoped enum in pre C++11
-namespace IPRecordType {
-    const int NONE = 0;
-    const int IPv4 = 1;
-    const int IPv6 = 2;
-}
-
 class IPRecord {
 private:
-    int rType;
-    std::string IPaddress;
+    std::string ipAddress;
     int ttl;
 public:
 
     IPRecord(int rt, std::string ipa, int tl) {
-        rType = rt;
-        IPaddress = ipa;
+        ipAddress = ipa;
         ttl = tl;
     }
 
@@ -30,27 +21,18 @@ public:
 
     IPRecord(const IPRecord& orig) {
         this->ttl = orig.ttl;
-        this->rType = orig.rType;
-        this->IPaddress = orig.IPaddress;
+        this->ipAddress = orig.ipAddress;
     }
 
     virtual ~IPRecord() {
     }
 
-    int getRtype() const {
-        return rType;
-    }
-
     std::string getIPAddress() const {
-        return IPaddress;
+        return ipAddress;
     }
 
     int getTtl() const {
         return ttl;
-    }
-
-    void setRtype(int rt) {
-        rType = rt;
     }
 
     void setTtl(int tl) {
@@ -58,7 +40,13 @@ public:
     }
 
     void setIPAddress(std::string ipa) {
-        IPaddress = ipa;
+        ipAddress = ipa;
+    }
+
+    std::string to_string() {
+        std::ostringstream os;
+        os << "{ ipAddress = " << ipAddress << ", ttl=" << ttl;
+        return os.str();
     }
 
 };
