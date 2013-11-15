@@ -17,9 +17,9 @@ def send_message(connection, message, routing_key='api'):
 
 if __name__ == '__main__':
     from kombu import Connection
-    types = ['monitor', 'monitor', 'monitor', 'api']
+    types = ['monitor', 'monitor', 'monitor', 'monitor', 'api']
 
-    connection = Connection('amqp://guest:guest@localhost//')
+    connection = Connection('amqp://guest:guest@rabbitmq-server//')
     for m in range(1,num_messages):
         rk = choice(types)
-        send_message(connection, message="%r message %d" % (rk,m), routing_key=rk)
+        send_message(connection, message="%r message %d" % (rk,m))
