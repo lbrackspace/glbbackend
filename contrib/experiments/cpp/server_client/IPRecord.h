@@ -5,6 +5,13 @@
 #include<string>
 #include<boost/unordered_map.hpp>
 
+// Just trying to emulate a scoped enum classesin pre C++11
+namespace IPRecordType {
+    const int NONE = 0;
+    const int IPv4 = 1;
+    const int IPv6 = 2;
+}
+
 class IPRecord {
 private:
     int ipType;
@@ -41,6 +48,14 @@ public:
 
     void setTtl(int tl) {
         ttl = tl;
+    }
+
+    void setIPType(int ty) {
+        ipType = ty;
+    }
+
+    int getIPType() {
+        return ipType;
     }
 
     void setIPAddress(std::string ipa) {

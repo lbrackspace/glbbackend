@@ -304,6 +304,17 @@ int main(int argc, char **argv) {
             } else if (nArgs >= 1 && cmdArgs[0].compare("nrblp") == 0) {
                 string line = rb.readLine();
                 cout << "poped line \"" << line << "\" off the ring_buffer" << endl;
+            } else if (nArgs >= 1 && cmdArgs[0].compare("nrbdc") == 0) {
+                cout << "doubling capacity of ring_char buff" << endl;
+                cout << "before: " << rb.debug_str(false) << endl;
+                rb.double_capacity();
+                cout << "after: " << rb.debug_str(false) << endl;
+            } else if (nArgs >= 2 && cmdArgs[0].compare("nrbws") == 0) {
+                int nBytes = std::atoi(cmdArgs[1].c_str());
+                cout << "Writing " << nBytes << " bytes into ring buffer" << endl;
+                for (i = 0; i < nBytes; i++) {
+                    rb.write("X");
+                }
             } else {
                 cout << "Unknown command" << cmd << endl;
                 cout << help() << endl;
@@ -361,10 +372,14 @@ string help() {
             << "nrb <size> #Create new ring buffer" << endl
             << "nrbw <str> #Add string to ring bufer" << endl
             << "nrbr <size> #read nBytes from ringBuffer" << endl
+            << "nrbwb <size> #write bogus bytes into buffer"
             << "nrbdec <size> # remve nBytes from the ringBuffer" << endl
             << "nrbs [true|false]#Show entire ring buffer the true or false option sepcifies wether the characters should be displayed" << endl
             << "nrblc #Count lines in ring_buffer" << endl
             << "nrblp #pop a line from the ring_buffer" << endl
+            << "nrbdc #Double the capacity of the ring buffer" << endl
+            << "nrbws <nBytes> # Write nBytes into the ring buffer" << endl
+            << "nrbdec <nBytes> #Decrement the number of bytes in the buffer simulating a read" << endl
             << "exit #Exit program" << endl;
 
     return os.str();

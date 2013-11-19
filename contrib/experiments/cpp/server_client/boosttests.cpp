@@ -67,8 +67,29 @@ BOOST_AUTO_TEST_CASE(test_str_maps) {
     BOOST_CHECK(glbTypeToStr(GlbType::WEIGHTED).compare("WEIGHTED") == 0);
 }
 
-BOOST_AUTO_TEST_CASE(test_to_string){
+BOOST_AUTO_TEST_CASE(test_IP_to_string) {
+    std::string expIPRStr("{ ipType=IPv4, ip=127.0.0.1, ttl=30}");
+    IPRecord ipr(IPRecordType::IPv4, "127.0.0.1", 30);
+
+
+    BOOST_CHECK(expIPRStr.compare(ipr.to_string()) == 0);
+
+    std::string expGlbStr("{ cname=testglb.rackexp.org, nsLookups=10, glbType=RANDOM, nIPv4=2, nIPv6=3}");
+    std::vector<IPRecord> ipVec;
+    // Add 2 records
+    ipVec.push_back(IPRecord(IPRecordType::IPv4, "127.0.0.1", 30));
+    ipVec.push_back(IPRecord(IPRecordType::IPv4, "192.168.3.0", 30));
+    ipVec.push_back(IPRecord(IPRecordType::IPv4, "10.0.0.0", 30));
+    ipVec.push_back(IPRecord(IPRecordType::IPv6, "::", 30));
+    ipVec.push_back(IPRecord(IPRecordType::IPv6, "ffee::", 30));
+    GlbContainer glb("testglb.rackexp.org", GlbType::RANDOM);
+    glb.setRandomAlgoIPVectors(ipVec);
+    for (int i = 0; i < 16; i++) {
+        glb.incNLookups();
+    }
+    std::cout << glb.to_string(true) << std::endl;
 }
+
 
 BOOST_AUTO_TEST_CASE(show_size_of_Glb) {
     std::cout << "sizeof(GlbContainer):: " << sizeof (GlbContainer) << std::endl;

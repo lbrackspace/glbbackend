@@ -2,6 +2,9 @@
 #define	RING_BUFFER_H
 
 #include<boost/shared_array.hpp>
+#include<string>
+#include<vector>
+#include<sstream>
 
 class ring_buffer {
 private:
@@ -20,11 +23,13 @@ public:
     int write(const char *str, int write_size);
     int write(std::string str);
     int dec(int dec_size);
+    int double_capacity();
     int used_size() const;
     int free_size() const;
     virtual ~ring_buffer();
     std::string debug_str(bool showBuffer) const;
-
+    static std::string vectorToString(const std::vector<std::string>& strVector,char delim);
+    static int stringToVector(const std::string& strIn,std::vector<std::string> &strVersion,char delim,bool skipLF);
 };
 
 #endif	/* RING_BUFFER_H */

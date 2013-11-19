@@ -5,6 +5,7 @@
 
 
 static boost::unordered_map<std::string, int> strToIpTypeMap;
+
 boost::unordered_map<std::string, int> buildStrToIpTypeMap() {
     boost::unordered_map<std::string, int> m;
     m["NONE"] = IPRecordType::NONE;
@@ -15,7 +16,10 @@ boost::unordered_map<std::string, int> buildStrToIpTypeMap() {
 
 std::string IPRecord::to_string() {
     std::ostringstream os;
-    os << "{ ip=" << ipAddress << ", ttl=" << ttl << "}";
+    os << "{ ipType=" << ipTypeToStr(ipType)
+            << ", ip=" << ipAddress
+            << ", ttl=" << ttl
+            << "}";
     return os.str();
 }
 

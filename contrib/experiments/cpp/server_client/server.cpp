@@ -13,7 +13,7 @@ using namespace std;
 using namespace boost;
 using namespace boost::asio;
 
-const int SOCKBUFFSIZE = 255;
+const int SOCKBUFFSIZE = 4096;
 
 int main(int argc, char **argv) {
     if (argc < 3) {

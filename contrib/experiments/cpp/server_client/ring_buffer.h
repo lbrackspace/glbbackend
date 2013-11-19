@@ -23,6 +23,7 @@ public:
     int write(const char *str, int write_size);
     int write(std::string str);
     int dec(int dec_size);
+    int double_capacity();
     int used_size() const;
     int free_size() const;
     virtual ~ring_buffer();

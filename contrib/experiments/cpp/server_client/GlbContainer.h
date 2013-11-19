@@ -2,7 +2,7 @@
 #define	GLBCONTAINER_H
 
 #include<boost/unordered_map.hpp>
-
+#include<boost/thread/locks.hpp>
 #include<boost/thread.hpp>
 #include<string>
 #include<vector>
@@ -14,12 +14,6 @@ namespace GlbType {
     const int RANDOM = 1;
     const int GEOIP = 2;
     const int WEIGHTED = 3;
-}
-// Just trying to emulate a scoped enum classesin pre C++11
-namespace IPRecordType {
-    const int NONE = 0;
-    const int IPv4 = 1;
-    const int IPv6 = 2;
 }
 
 class GlbContainer {
@@ -45,6 +39,13 @@ public:
     virtual ~GlbContainer() {
     };
 
+    void setRandomAlgoIPVectors(std::vector<IPRecord>& ipv4Vals);
+
+    void clrNLookups() {
+        boost::lock_guard<boost::mutex> lock(nLookupsLock);
+        nLookups = 0;
+    }
+
     void incNLookups() {
         boost::lock_guard<boost::mutex> lock(nLookupsLock);
         nLookups++;
@@ -55,6 +56,7 @@ public:
         return nLookups;
     }
     std::string to_string();
+    std::string to_string(bool showIps);
 };
 
 int strToGlbType(std::string str);

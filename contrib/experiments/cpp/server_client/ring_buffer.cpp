@@ -241,6 +241,29 @@ int ring_buffer::stringToVector(const std::string& strIn, std::vector<std::strin
     return nStrings;
 }
 
+// Implement growable char array
+
+int ring_buffer::double_capacity() {
+    int ds = data_size;
+    int ns = ds * 2;
+    boost::shared_array<char> tmp(new char[ns]);
+    int ci = h_idx;
+    int ni = 0;
+    for (int i = 0; i < used; i++) {
+        tmp[ni] = data[ci];
+        ci = (ci + 1) % ds;
+        ni++;
+    }
+
+    data = boost::shared_array<char>(new char[ns]);
+    for (int i = 0; i < used; i++) {
+        data[i] = tmp[i];
+    }
+    h_idx = 0;
+    data_size = ns;
+    return data_size;
+}
+
 std::string ring_buffer::vectorToString(const std::vector<std::string> &strVector, char delim) {
     std::ostringstream os;
     return os.str();
