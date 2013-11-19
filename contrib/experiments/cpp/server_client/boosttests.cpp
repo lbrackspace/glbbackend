@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(test_IP_to_string) {
 
     BOOST_CHECK(expIPRStr.compare(ipr.to_string()) == 0);
 
-    std::string expGlbStr("{ cname=testglb.rackexp.org, nsLookups=16, glbType=RANDOM, nIPv4=3, nIPv6=2}");
+    std::string expGlbStr("{ cname=testglb.rackexp.org, nsLookups=16, glbType=RANDOM, nIPv4=3, nIPv6=2, nIPBoth=5}");
     std::vector<IPRecord> ipVec;
     // Add 2 records
     ipVec.push_back(IPRecord(IPRecordType::IPv4, "127.0.0.1", 30));
@@ -87,6 +87,7 @@ BOOST_AUTO_TEST_CASE(test_IP_to_string) {
     for (int i = 0; i < 16; i++) {
         glb.incNLookups();
     }
+    cout << "glb = " << glb.to_string(true) << endl;
     BOOST_CHECK(glb.to_string().compare(expGlbStr) == 0);
 }
 

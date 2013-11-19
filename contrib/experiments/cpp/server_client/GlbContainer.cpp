@@ -4,6 +4,7 @@
 #include<boost/thread/locks.hpp>
 #include<boost/shared_ptr.hpp>
 #include<boost/thread.hpp>
+#include<vector>
 #include<string>
 
 static boost::unordered_map<std::string, int> strToGlbTypeMap;
@@ -29,6 +30,7 @@ std::string GlbContainer::to_string(bool showIps) {
             << ", glbType=" << glbTypeToStr(glbType)
             << ", nIPv4=" << ipv4.size()
             << ", nIPv6=" << ipv6.size()
+            << ", nIPBoth=" << ipBoth.size()
             << "}";
     if (showIps) {
         std::vector<boost::shared_ptr<IPRecord> >::iterator it;
@@ -40,6 +42,11 @@ std::string GlbContainer::to_string(bool showIps) {
         }
         end = ipv6.end();
         for (it = ipv6.begin(); it != end; it++) {
+            IPRecord *ptr = (*it).get();
+            os << ptr->to_string() << " ";
+        }
+        end = ipBoth.end();
+        for (it = ipBoth.begin(); it != end; it++) {
             IPRecord *ptr = (*it).get();
             os << ptr->to_string() << " ";
         }
@@ -81,14 +88,55 @@ void GlbContainer::setRandomAlgoIPVectors(std::vector<IPRecord>& ipVec) {
         switch (itype) {
             case IPRecordType::IPv4:
                 ipv4.push_back(boost::shared_ptr<IPRecord > (new IPRecord(*it)));
+                ipBoth.push_back(boost::shared_ptr<IPRecord > (new IPRecord(*it)));
                 break;
             case IPRecordType::IPv6:
                 ipv6.push_back(boost::shared_ptr<IPRecord > (new IPRecord(*it)));
+                ipBoth.push_back(boost::shared_ptr<IPRecord > (new IPRecord(*it)));
                 break;
             default: // Report an Error here some how back to DC master
                 break;
         }
     }
+}
+
+void expandweights(std::vector<int> &expanded, std::vector<int>&weights) {
+    int ws = weights.size();
+    expanded.clear();
+    for (int i = 0; i < ws; i++) {
+        int weight = weights[i];
+        for (int j = 0; j < weight; j++) {
+            weights.push_back(i);
+        }
+    }
+}
+
+// Besure you don't have all vectors weighted at zero as this triggers division by zero
+
+int gcdreduce(std::vector<int> &reduced_weights, std::vector<int> &weights, int& itercount) {
+    int r = 0;
+    int nWeights = weights.size();
+    if (nWeights <= 0) {
+        return 0;
+    }
+    r = weights[0];
+    itercount++;
+    for (int i = 1; i < nWeights; i++) {
+        int a = r;
+        int b = weights[i];
+        while (a != 0) {
+            itercount++;
+            int c = a;
+            a = b % a;
+            b = c;
+        }
+        r = b;
+    }
+    reduced_weights.clear();
+    for (int i = 0; i < nWeights; i++) {
+        reduced_weights.push_back(weights[i] / r);
+    }
+    return r;
 }
 
 

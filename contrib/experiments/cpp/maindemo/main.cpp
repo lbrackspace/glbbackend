@@ -10,6 +10,7 @@
 #include<string.h>
 #include<cstdlib>
 #include<unistd.h>
+#include<deque>
 #include<boost/unordered_map.hpp>
 #include<boost/interprocess/mapped_region.hpp>
 
@@ -32,6 +33,7 @@ int nop();
 int demoCopyVsMove();
 std::string address_to_string(boost::asio::ip::address& addr);
 boost::shared_ptr<boost::asio::ip::tcp::resolver::iterator> resolveTCP(std::string& host, std::string& service, boost::asio::io_service& ios, boost::system::error_code& ec);
+int gcdreduce(vector<int> &reduced_weights, vector<int> &weights, int& itercount);
 
 int main(int argc, char **argv) {
     char *cmd = new char[LINE_SIZE + 1];
@@ -43,6 +45,7 @@ int main(int argc, char **argv) {
     Point sum;
     io_service ios;
     ring_buffer rb(0);
+    deque<string> dq;
     vector<string> *strVector = new vector<string>;
     unordered_map<string, string> *strMap = new unordered_map<string, string>;
     shared_ptr<string> strPtr(new string("default"));
@@ -315,6 +318,43 @@ int main(int argc, char **argv) {
                 for (i = 0; i < nBytes; i++) {
                     rb.write("X");
                 }
+            } else if (nArgs >= 2 && cmdArgs[0].compare("reduce") == 0) {
+                vector<int> weights;
+                vector<int> reduced;
+                cout << "reducing: ";
+                int itercount = 0;
+                int as = cmdArgs.size();
+                for (i = 1; i < as; i++) {
+                    int weight = std::atoi(cmdArgs[i].c_str());
+                    cout << weight << " ";
+                    weights.push_back(weight);
+                }
+                cout << endl;
+                int r = gcdreduce(reduced, weights, itercount);
+                cout << "weights.size() = " << weights.size() << endl;
+                cout << "reduced.size() = " << reduced.size() << endl;
+
+                cout << "reduced in " << itercount << " gcd loop iterations. gcd= " << r << endl;
+                cout << "Reduction: ";
+                as = reduced.size();
+                for (i = 0; i < as; i++) {
+                    cout << reduced[i] << " ";
+                }
+                cout << endl;
+            } else if (nArgs >= 1 && cmdArgs[0].compare("dqs") == 0) {
+                cout << "dqsize = " << dq.size() << endl;
+            } else if (nArgs >= 1 && cmdArgs[0].compare("dqc") == 0) {
+                cout << "Clearing dq" << endl;
+                dq.clear();
+            } else if (nArgs >= 2 && cmdArgs[0].compare("dqw") == 0) {
+                string val(cmdArgs[1]);
+                cout << "adding " << val << " onto dq" << endl;
+                dq.push_back(val);
+            } else if (nArgs >= 1 && cmdArgs[0].compare("dqr") == 0) {
+                string val(*dq.begin());
+                cout << "read value " << val << endl;
+                cout << "popping value off front" << endl;
+                dq.pop_front();
             } else {
                 cout << "Unknown command" << cmd << endl;
                 cout << help() << endl;
@@ -380,6 +420,12 @@ string help() {
             << "nrbdc #Double the capacity of the ring buffer" << endl
             << "nrbws <nBytes> # Write nBytes into the ring buffer" << endl
             << "nrbdec <nBytes> #Decrement the number of bytes in the buffer simulating a read" << endl
+            << "reduce <int1> <int2> <int..n> #use gcd to reduce the following vector simulating the weighted algo" << endl
+            << "expandreduce <int1> <int2> <int..n? #reduce the weights then expand to vector list" << endl
+            << "dqs #show dq size" << endl
+            << "dqc #clear dq" << endl
+            << "dqw <str> #Write str onto deque" << endl
+            << "dqr <str> #read string off front of deque" << endl
             << "exit #Exit program" << endl;
 
     return os.str();
@@ -441,6 +487,45 @@ boost::shared_ptr<ip::tcp::resolver::iterator> resolveTCP(string& host, string& 
     //ip::tcp::resolver::iterator it = r.resolve(q, ec);
     cout << "it @" << it.get() << endl;
     return it;
+}
+
+void expandweights(vector<int> &expanded, vector<int>&weights) {
+    int ws = weights.size();
+    expanded.clear();
+    for (int i = 0; i < ws; i++) {
+        int weight = weights[i];
+        for (int j = 0; j < weight; j++) {
+            weights.push_back(i);
+        }
+    }
+}
+
+// Besure you don't have all vectors weighted at zero as this triggers division by zero
+
+int gcdreduce(vector<int> &reduced_weights, vector<int> &weights, int& itercount) {
+    int r = 0;
+    int nWeights = weights.size();
+    if (nWeights <= 0) {
+        return 0;
+    }
+    r = weights[0];
+    itercount++;
+    for (int i = 1; i < nWeights; i++) {
+        int a = r;
+        int b = weights[i];
+        while (a != 0) {
+            itercount++;
+            int c = a;
+            a = b % a;
+            b = c;
+        }
+        r = b;
+    }
+    reduced_weights.clear();
+    for (int i = 0; i < nWeights; i++) {
+        reduced_weights.push_back(weights[i] / r);
+    }
+    return r;
 }
 
 int nop() {

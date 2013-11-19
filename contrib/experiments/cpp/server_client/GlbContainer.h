@@ -23,8 +23,10 @@ private:
     std::string cname;
     boost::mutex nLookupsLock;
     boost::shared_mutex lock;
+    std::vector<boost::shared_ptr<IPRecord> > ipBoth;
     std::vector<boost::shared_ptr<IPRecord> > ipv4;
     std::vector<boost::shared_ptr<IPRecord> > ipv6;
+    std::vector<int> weightsBoth;
     std::vector<int> weightsIpv4;
     std::vector<int> weightsIpv6;
 
@@ -65,5 +67,7 @@ std::string glbTypeToStr(int gt);
 extern boost::unordered_map<std::string, boost::shared_ptr<GlbContainer > > glbMap;
 extern boost::shared_mutex glbMapLock;
 
+int gcdreduce(std::vector<int> &reduced_weights, std::vector<int> &weights, int& itercount);
+void expandweights(std::vector<int> &expanded, std::vector<int>&weights);
 #endif	/* GLBCONTAINER_H */
 
