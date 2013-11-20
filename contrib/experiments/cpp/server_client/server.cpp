@@ -66,6 +66,7 @@ int server(shared_ptr<ip::tcp::socket> socket) {
     do {
         cout << "inlines.size() = " << inlines.size() << endl;
         nBytes = socket->read_some(buffer(buff, SOCKBUFFSIZE), ec);
+        cout << "inring.free_size() = " << inring.free_size() << " nBytes read from socket " << nBytes << endl;
         while (inring.free_size() < nBytes) {
             cout << "Doubleing inring size from " << inring.getDataSize() << " to ";
             inring.double_capacity();
@@ -73,7 +74,7 @@ int server(shared_ptr<ip::tcp::socket> socket) {
         }
         if (ec != 0) break;
         cout << "Thread: " << this_thread::get_id() << " Read msg \"" << string(buff, nBytes) << "\"" << endl;
-        cout << "read " << nBytes << "bytes" << endl;
+        cout << "read " << nBytes << " bytes" << endl;
         inring.write(buff, nBytes);
         //write(*socket, buffer(buff, nBytes));
         int nInputLines = inring.linesAvailable();
@@ -104,14 +105,13 @@ int server(shared_ptr<ip::tcp::socket> socket) {
                     cout << "Writing to socket" << endl;
                     while (outring.used_size() > 0) {
                         cout << "found " << outring.linesAvailable() << " lines" << endl;
-                        cout << "outline = " << outring.readLine() << endl;
                         cout << "outringbuff:" << endl;
+                        cout << "BeforeSockWrite: " << endl;
                         cout << outring.debug_str(true) << endl;
                         int nWrite = outring.read(buff, SOCKBUFFSIZE);
-                        int sWrite = 0;
-                        //int sWrite = write(*socket, buffer(buff, nWrite));
-                        cout << "Wrote " << nWrite << " " << sWrite << " bytes to socket: " << string(buff, nWrite) << endl;
-                        cout << "after ringout:" << endl
+                        int sWrite = write(*socket, buffer(buff, nWrite));
+                        cout << "Wrote " << nWrite << " " << sWrite << " bytes to socket: " << string(buff, nWrite) << endl
+                                << "after ringout:" << endl
                                 << outring.debug_str(true) << endl;
                     }
                     inlines.clear();

@@ -160,17 +160,19 @@ std::string ring_buffer::read(int max_size) {
 
 int ring_buffer::read(char *strPtr, int max_size) {
     int ds = data_size;
-    int u = used;
     int di = 0;
     int ri = h_idx;
-    while (di < max_size && u > 0) {
-        strPtr[di] = strPtr[ri];
+    int nBytes = (max_size > used) ? used : max_size;
+    int nb = nBytes;
+    while (nb > 0) {
+        strPtr[di] = data[ri];
         ri = (ri + 1) % ds;
         di++;
-        u--;
+        nb--;
     }
-
-    dec(di);
+    h_idx = ri;
+    used -= nBytes;
+    return nBytes;
 }
 
 int ring_buffer::free_size() const {
