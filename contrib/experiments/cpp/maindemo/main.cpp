@@ -19,6 +19,7 @@
 #include"Matrix.h"
 #include"Point.h"
 #include"ring_buffer.h"
+#include"BitArray.h"
 
 
 using namespace std;
@@ -54,6 +55,7 @@ int main(int argc, char **argv) {
     string prompt = "Silly Shell> ";
     ThreadManager tm(cout);
     vector<string>cmdArgs;
+    BitArray ba(32);
     cout << "pid = " << getpid() << endl;
     cout << "main thread_id = " << boost::this_thread::get_id() << endl;
     do {
@@ -355,6 +357,22 @@ int main(int argc, char **argv) {
                 cout << "read value " << val << endl;
                 cout << "popping value off front" << endl;
                 dq.pop_front();
+            } else if (nArgs >= 2 && cmdArgs[0].compare("ba") == 0) {
+                int nBits = std::atoi(cmdArgs[1].c_str());
+                cout << "Allocating bit array to size " << nBits << endl;
+                ba = BitArray(nBits);
+            } else if (nArgs >= 1 && cmdArgs[0].compare("bah") == 0) {
+                cout << "bitArray in hex: " << ba.to_hex() << endl;
+            } else if (nArgs >= 1 && cmdArgs[0].compare("bab") == 0) {
+                cout << "bitArray in bin: " << ba.to_bin() << endl;
+            } else if (nArgs >= 3 && cmdArgs[0].compare("bas") == 0) {
+                int bit_idx = std::atoi(cmdArgs[1].c_str());
+                int bit_val = std::atoi(cmdArgs[2].c_str());
+                cout << "setting bit[" << bit_idx << "] = " << bit_val << endl;
+                ba.setBit(bit_idx, bit_val);
+            } else if (nArgs >= 2 && cmdArgs[0].compare("bag") == 0) {
+                int bit_idx = std::atoi(cmdArgs[1].c_str());
+                cout << "getting bit[" << bit_idx << "] = " << ba.getBit(bit_idx) << endl;
             } else {
                 cout << "Unknown command" << cmd << endl;
                 cout << help() << endl;
@@ -426,6 +444,12 @@ string help() {
             << "dqc #clear dq" << endl
             << "dqw <str> #Write str onto deque" << endl
             << "dqr <str> #read string off front of deque" << endl
+            << "ba <nBits> #create BitArray of size nBits " << endl
+            << "bah #display the bit array in hex" << endl
+            << "bab #display the bit array in binar" << endl
+            << "bas <bitNum> <bitVal> #set the bitNumber to the bitval" << endl
+            << "bag <bitNum> #Read the bit at the specified address" << endl
+
             << "exit #Exit program" << endl;
 
     return os.str();

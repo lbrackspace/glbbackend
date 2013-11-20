@@ -82,7 +82,7 @@ int server(shared_ptr<ip::tcp::socket> socket) {
             cout << "Reading" << endl;
             for (int i = 0; i < nInputLines; i++) {
                 string line(inring.readLine());
-                vector<string> strVecs;
+                vector< string> strVecs;
                 int nEntries = ring_buffer::stringToVector(line, strVecs, ' ', true);
                 inlines.push_back(strVecs);
                 cout << "strVec = " << ring_buffer::vectorToString(strVecs, ' ') << endl;

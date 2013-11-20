@@ -8,6 +8,7 @@
 #include<sstream>
 
 #include "ring_buffer.h"
+#include"BitArray.h"
 
 const int STRBUFFSIZE = 4096;
 
@@ -36,6 +37,7 @@ ring_buffer& ring_buffer::operator =(const ring_buffer& orig) {
         abs_i = (h + i) % ds;
         charPtr[abs_i] = origcharPtr[abs_i];
     }
+    return *this;
 }
 
 ring_buffer::ring_buffer(const ring_buffer& orig) {
@@ -157,21 +159,18 @@ std::string ring_buffer::read(int max_size) {
 }
 
 int ring_buffer::read(char *strPtr, int max_size) {
-    int u = used;
     int ds = data_size;
+    int u = used;
     int di = 0;
     int ri = h_idx;
-    if (ds <= 0) {
-        return 0;
-    }
     while (di < max_size && u > 0) {
-        strPtr[di] = data[ri];
+        strPtr[di] = strPtr[ri];
         ri = (ri + 1) % ds;
         di++;
         u--;
     }
-    used = u;
-    return di;
+
+    dec(di);
 }
 
 int ring_buffer::free_size() const {
@@ -185,24 +184,30 @@ int ring_buffer::getDataSize() const {
 std::string ring_buffer::debug_str(bool showBuffer) const {
     std::ostringstream os;
     int ds = data_size;
+    int i;
     int h = h_idx;
     int u = used;
+
+    u = used;
+    h = h_idx;
     if (showBuffer) {
-        for (int i = 0; i < ds; i++) {
+        BitArray ba(ds);
+        int th = h_idx;
+        for (int tu = used; tu > 0; tu--) {
+            ba.setBit(th, 1);
+            th = (th + 1) % ds;
+        }
+        for (i = 0; i < ds; i++) {
             const char ch = data[i];
             std::string strRepr = std::string(1, data[i]);
             if (ch == '\n') {
                 strRepr = "\\n";
             }
-            os << "rb[" << std::setw(4) << i << "]= '" << strRepr << "'";
-            if ((h + u >= ds) && (i <= (h + u) % ds || (i > h))) {
-                os << "*" << std::endl;
-            } else if ((i >= h) && (i < h + u)) {
-                os << "*" << std::endl;
-            } else {
-                os << std::endl;
+            os << "rb[" << std::setw(4) << i << "]= ";
+            if (ba.getBit(i) == 1) {
+                os << strRepr << " *";
             }
-
+            os << std::endl;
         }
     }
     os << "{"

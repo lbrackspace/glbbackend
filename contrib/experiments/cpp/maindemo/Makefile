@@ -2,8 +2,11 @@ CF= -O0 -I. -ggdb
 
 all: cppdemo boosttests
 
-main.o: main.cpp DemoUtils.h Matrix.h ThreadManager.h Point.h ring_buffer.h
+main.o: main.cpp DemoUtils.h Matrix.h ThreadManager.h Point.h ring_buffer.h BitArray.h
 	g++ $(CF) -c main.cpp 
+
+BitArray.o: BitArray.cpp BitArray.h
+	g++ $(CF) -c BitArray.cpp
 
 ring_buffer.o: ring_buffer.cpp ring_buffer.h
 	g++ $(CF) -c ring_buffer.cpp
@@ -23,8 +26,8 @@ DemoUtils.o: DemoUtils.cpp DemoUtils.h
 Matrix.o: Matrix.h Matrix.cpp
 	g++ $(CF) -c Matrix.cpp
 
-cppdemo: DemoUtils.o Matrix.o ThreadManager.o Point.o ring_buffer.o main.o
-	g++ $(CF) -o cppdemo main.o DemoUtils.o Matrix.o ThreadManager.o Point.o ring_buffer.o -lboost_thread-mt -lboost_system-mt
+cppdemo: DemoUtils.o Matrix.o ThreadManager.o Point.o ring_buffer.o main.o BitArray.o
+	g++ $(CF) -o cppdemo main.o DemoUtils.o Matrix.o ThreadManager.o Point.o ring_buffer.o BitArray.o -lboost_thread-mt -lboost_system-mt
 
 boosttests: BoostTests.o DemoUtils.o Matrix.o ThreadManager.o Point.o
 	g++ $(CF) -o boosttests BoostTests.o DemoUtils.o Matrix.o ThreadManager.o Point.o -lboost_thread-mt -lboost_system-mt -lboost_unit_test_framework-mt

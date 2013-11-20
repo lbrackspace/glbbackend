@@ -8,6 +8,7 @@
 #include<sstream>
 
 #include "ring_buffer.h"
+#include"BitArray.h"
 
 const int STRBUFFSIZE = 4096;
 
@@ -183,24 +184,30 @@ int ring_buffer::getDataSize() const {
 std::string ring_buffer::debug_str(bool showBuffer) const {
     std::ostringstream os;
     int ds = data_size;
+    int i;
     int h = h_idx;
     int u = used;
+
+    u = used;
+    h = h_idx;
     if (showBuffer) {
-        for (int i = 0; i < ds; i++) {
+        BitArray ba(ds);
+        int th = h_idx;
+        for (int tu = used; tu > 0; tu--) {
+            ba.setBit(th, 1);
+            th = (th + 1) % ds;
+        }
+        for (i = 0; i < ds; i++) {
             const char ch = data[i];
             std::string strRepr = std::string(1, data[i]);
             if (ch == '\n') {
                 strRepr = "\\n";
             }
-            os << "rb[" << std::setw(4) << i << "]= '" << strRepr << "'";
-            if ((h + u >= ds) && (i <= (h + u) % ds || (i > h))) {
-                os << "*" << std::endl;
-            } else if ((i >= h) && (i < h + u)) {
-                os << "*" << std::endl;
-            } else {
-                os << std::endl;
+            os << "rb[" << std::setw(4) << i << "]= ";
+            if (ba.getBit(i) == 1) {
+                os << strRepr << " *";
             }
-
+            os << std::endl;
         }
     }
     os << "{"
