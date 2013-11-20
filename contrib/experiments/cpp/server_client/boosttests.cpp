@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(ring_buffer_should_strip_line_feed) {
 }
 
 BOOST_AUTO_TEST_CASE(ring_buffer_should_strip_all_line_feeds_too) {
-    string lineFeededString("this\n\n is \na test \nblah\nblah\n");
+    string lineFeededString("this\n\r\n\r\n is \na test \nblah\nblah\n");
     vector<string> strVector;
     ring_buffer::stringToVector(lineFeededString, strVector, ' ', true);
     BOOST_CHECK(strVector.size() == 6);
@@ -87,7 +87,6 @@ BOOST_AUTO_TEST_CASE(test_IP_to_string) {
     for (int i = 0; i < 16; i++) {
         glb.incNLookups();
     }
-    cout << "glb = " << glb.to_string(true) << endl;
     BOOST_CHECK(glb.to_string().compare(expGlbStr) == 0);
 }
 

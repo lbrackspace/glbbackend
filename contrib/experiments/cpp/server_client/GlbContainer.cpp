@@ -74,7 +74,7 @@ std::string glbTypeToStr(int gt) {
         case GlbType::WEIGHTED:
             return std::string("WEIGHTED");
     }
-    return GlbType::NONE;
+    return std::string("NONE");
 }
 
 void GlbContainer::setRandomAlgoIPVectors(std::vector<IPRecord>& ipVec) {

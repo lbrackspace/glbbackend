@@ -178,6 +178,10 @@ int ring_buffer::free_size() const {
     return data_size - used;
 }
 
+int ring_buffer::getDataSize() const {
+    return data_size;
+}
+
 std::string ring_buffer::debug_str(bool showBuffer) const {
     std::ostringstream os;
     int ds = data_size;
@@ -223,7 +227,8 @@ int ring_buffer::stringToVector(const std::string& strIn, std::vector<std::strin
     int li = strIn.size();
     for (ci = 0; ci <= li; ci++) {
         cl = ci - cb;
-        if (strIn[ci] == delim || strIn[ci] == '\0' || cl >= STRBUFFSIZE || (skipLF && strIn[ci] == '\n')) {
+        char ch = strIn[ci];
+        if (ch == delim || ch == '\0' || cl >= STRBUFFSIZE || (skipLF && (ch == '\n' || ch == '\r'))) {
             if (cl <= 0) {
                 cb = ci + 1;
                 buff[0] = '\0';
@@ -245,6 +250,7 @@ int ring_buffer::stringToVector(const std::string& strIn, std::vector<std::strin
 
 int ring_buffer::double_capacity() {
     int ds = data_size;
+
     int ns = ds * 2;
     boost::shared_array<char> tmp(new char[ns]);
     int ci = h_idx;
@@ -265,6 +271,15 @@ int ring_buffer::double_capacity() {
 }
 
 std::string ring_buffer::vectorToString(const std::vector<std::string> &strVector, char delim) {
+    int nVecs = strVector.size();
+    int i;
+    if (nVecs == 0) {
+        return std::string("");
+    }
     std::ostringstream os;
+    for (i = 0; i < nVecs - 1; i++) {
+        os << strVector[i] << delim;
+    }
+    os << strVector[i];
     return os.str();
 }

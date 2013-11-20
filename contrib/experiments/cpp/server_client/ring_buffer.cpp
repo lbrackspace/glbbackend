@@ -36,6 +36,7 @@ ring_buffer& ring_buffer::operator =(const ring_buffer& orig) {
         abs_i = (h + i) % ds;
         charPtr[abs_i] = origcharPtr[abs_i];
     }
+    return *this;
 }
 
 ring_buffer::ring_buffer(const ring_buffer& orig) {
@@ -157,25 +158,26 @@ std::string ring_buffer::read(int max_size) {
 }
 
 int ring_buffer::read(char *strPtr, int max_size) {
-    int u = used;
     int ds = data_size;
+    int u = used;
     int di = 0;
     int ri = h_idx;
-    if (ds <= 0) {
-        return 0;
-    }
     while (di < max_size && u > 0) {
-        strPtr[di] = data[ri];
+        strPtr[di] = strPtr[ri];
         ri = (ri + 1) % ds;
         di++;
         u--;
     }
-    used = u;
-    return di;
+
+    dec(di);
 }
 
 int ring_buffer::free_size() const {
     return data_size - used;
+}
+
+int ring_buffer::getDataSize() const {
+    return data_size;
 }
 
 std::string ring_buffer::debug_str(bool showBuffer) const {
@@ -223,7 +225,8 @@ int ring_buffer::stringToVector(const std::string& strIn, std::vector<std::strin
     int li = strIn.size();
     for (ci = 0; ci <= li; ci++) {
         cl = ci - cb;
-        if (strIn[ci] == delim || strIn[ci] == '\0' || cl >= STRBUFFSIZE || (skipLF && strIn[ci] == '\n')) {
+        char ch = strIn[ci];
+        if (ch == delim || ch == '\0' || cl >= STRBUFFSIZE || (skipLF && (ch == '\n' || ch == '\r'))) {
             if (cl <= 0) {
                 cb = ci + 1;
                 buff[0] = '\0';
@@ -245,6 +248,7 @@ int ring_buffer::stringToVector(const std::string& strIn, std::vector<std::strin
 
 int ring_buffer::double_capacity() {
     int ds = data_size;
+
     int ns = ds * 2;
     boost::shared_array<char> tmp(new char[ns]);
     int ci = h_idx;
@@ -265,6 +269,15 @@ int ring_buffer::double_capacity() {
 }
 
 std::string ring_buffer::vectorToString(const std::vector<std::string> &strVector, char delim) {
+    int nVecs = strVector.size();
+    int i;
+    if (nVecs == 0) {
+        return std::string("");
+    }
     std::ostringstream os;
+    for (i = 0; i < nVecs - 1; i++) {
+        os << strVector[i] << delim;
+    }
+    os << strVector[i];
     return os.str();
 }

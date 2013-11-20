@@ -26,10 +26,11 @@ public:
     int double_capacity();
     int used_size() const;
     int free_size() const;
+    int getDataSize() const;
     virtual ~ring_buffer();
     std::string debug_str(bool showBuffer) const;
-    static std::string vectorToString(const std::vector<std::string>& strVector,char delim);
-    static int stringToVector(const std::string& strIn,std::vector<std::string> &strVersion,char delim,bool skipLF);
+    static std::string vectorToString(const std::vector<std::string>& strVector, char delim);
+    static int stringToVector(const std::string& strIn, std::vector<std::string> &strVersion, char delim, bool skipLF);
 };
 
 #endif	/* RING_BUFFER_H */
