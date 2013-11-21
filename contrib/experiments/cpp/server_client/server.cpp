@@ -45,84 +45,37 @@ int listener(string ip_addr_str, int port) {
     ip::tcp::acceptor ac(ios, ep);
 
     while (true) {
-        shared_ptr<ip::tcp::socket> socket(new ip::tcp::socket(ios));
-        ac.accept(*socket);
-        cout << "Thread: " << this_thread::get_id() << " New connection recieved from: " << socket->remote_endpoint().address() << endl;
-        thread th(bind(server, socket));
+        shared_ptr<ip::tcp::iostream> stream(new ip::tcp::iostream());
+        ac.accept(*stream->rdbuf());
+        cout << "New connection recieved from: " << stream->rdbuf()->remote_endpoint() << endl;
+        thread th(bind(server, stream));
         th.detach();
     }
     return 0;
 }
 
-int server(shared_ptr<ip::tcp::socket> socket) {
-    ring_buffer inring(INIT_RING_SIZE);
-    ring_buffer outring(INIT_RING_SIZE);
-    deque<vector<string> > inlines;
-
-    cout << "Thread: " << this_thread::get_id() << " starting server in child thread" << endl;
-    char buff[SOCKBUFFSIZE + 1];
-    size_t nBytes;
-    system::error_code ec;
+int server(shared_ptr<ip::tcp::iostream> tstream) {
+    string line;
+    vector<string> inLines;
+    vector<string> cmdArgs;
     do {
-        cout << "inlines.size() = " << inlines.size() << endl;
-        nBytes = socket->read_some(buffer(buff, SOCKBUFFSIZE), ec);
-        cout << "inring.free_size() = " << inring.free_size() << " nBytes read from socket " << nBytes << endl;
-        while (inring.free_size() < nBytes) {
-            cout << "Doubleing inring size from " << inring.getDataSize() << " to ";
-            inring.double_capacity();
-            cout << inring.getDataSize() << endl;
-        }
-        if (ec != 0) break;
-        cout << "Thread: " << this_thread::get_id() << " Read msg \"" << string(buff, nBytes) << "\"" << endl;
-        cout << "read " << nBytes << " bytes" << endl;
-        inring.write(buff, nBytes);
-        //write(*socket, buffer(buff, nBytes));
-        int nInputLines = inring.linesAvailable();
-        cout << "found nInputLines " << nInputLines << endl;
-        if (nInputLines > 0) {
-            cout << "Reading" << endl;
-            for (int i = 0; i < nInputLines; i++) {
-                string line(inring.readLine());
-                vector< string> strVecs;
-                int nEntries = ring_buffer::stringToVector(line, strVecs, ' ', true);
-                inlines.push_back(strVecs);
-                cout << "strVec = " << ring_buffer::vectorToString(strVecs, ' ') << endl;
-                if (strVecs.size() >= 1 && strVecs[0].compare("OVER") == 0) {
-                    cout << "READ OVER starting write loop" << endl;
-                    for (int j = 0; j < inlines.size(); j++) {
-                        string lineout("ECHO: " + ring_buffer::vectorToString(inlines[j], '=') + "\n");
-                        cout << "Checking if strsize " << lineout.size() << " will fit in outring " << outring.free_size() << endl;
-                        while (outring.free_size() < lineout.size()) {
-                            cout << "doubling size of outring from " << outring.getDataSize() << " to ";
-                            outring.double_capacity();
-                            cout << outring.getDataSize() << endl;
-                        }
+        // Read until OVER
+        line.clear();
+        getline(*tstream, line);
+        inLines.push_back(line);
 
-                        cout << "lineout=" << lineout << endl;
-                        outring.write(lineout);
-                    }
-                    inlines.clear();
-                    cout << "Writing to socket" << endl;
-                    while (outring.used_size() > 0) {
-                        cout << "found " << outring.linesAvailable() << " lines" << endl;
-                        cout << "outringbuff:" << endl;
-                        cout << "BeforeSockWrite: " << endl;
-                        cout << outring.debug_str(true) << endl;
-                        int nWrite = outring.read(buff, SOCKBUFFSIZE);
-                        int sWrite = write(*socket, buffer(buff, nWrite));
-                        cout << "Wrote " << nWrite << " " << sWrite << " bytes to socket: " << string(buff, nWrite) << endl
-                                << "after ringout:" << endl
-                                << outring.debug_str(true) << endl;
-                    }
-                    inlines.clear();
-                    break;
-                }
+        cmdArgs.clear();
+        ring_buffer::stringToVector(line, cmdArgs, ' ', true);
+        if (cmdArgs.size() > 0 && cmdArgs[0].compare("OVER") == 0) {
+            // Write Responses
+            for (int i = 0; i < inLines.size(); i++) {
+                (*tstream) << "Echo " << inLines[i] << endl;
             }
+            (*tstream) << "OVER" << endl;
+            inLines.clear();
         }
-    } while (true);
-    cout << "Thread: " << this_thread::get_id() << " Got error code: " << ec.message() << endl;
-    cout << "Thread: " << this_thread::get_id() << " Closing socket" << endl;
-    socket->close();
-    cout << "Thread: " << this_thread::get_id() << " Socket closed" << endl;
+    } while (!tstream->eof());
+    cout << "closeing socket" << tstream->rdbuf()->remote_endpoint() << endl;
+    tstream->close();
     return 0;
 }

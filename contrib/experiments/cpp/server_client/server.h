@@ -7,7 +7,7 @@
 
 int usage(char *prog);
 int listener(std::string ip_addr_str, int port);
-int server(boost::shared_ptr<boost::asio::ip::tcp::socket> socket);
+int server(boost::shared_ptr<boost::asio::ip::tcp::iostream> tstream);
 #endif
 
 
