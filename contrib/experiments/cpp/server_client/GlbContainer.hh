@@ -6,7 +6,7 @@
 #include<boost/thread.hpp>
 #include<string>
 #include<vector>
-#include"IPRecord.h"
+#include"IPRecord.hh"
 
 // Just trying to emulate a scoped enum in pre C++11
 namespace GlbType {

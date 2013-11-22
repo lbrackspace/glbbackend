@@ -2,32 +2,26 @@ CF=-O0 -ggdb -I.
 
 all: server client lookup boosttests
 
-IPRecord.o: IPRecord.h IPRecord.cpp
-	g++ $(CF) -c IPRecord.cpp
+IPRecord.o: IPRecord.hh IPRecord.cc
+	g++ $(CF) -c IPRecord.cc
 
-BitArray.o: BitArray.h BitArray.cpp
-	g++ $(CF) -c BitArray.cpp
+GlbContainer.o: GlbContainer.hh GlbContainer.cc
+	g++ $(CF) -c GlbContainer.cc
 
-GlbContainer.o: GlbContainer.h GlbContainer.cpp
-	g++ $(CF) -c GlbContainer.cpp
+boosttests.o: boosttests.cc
+	g++ $(CF) -c boosttests.cc
 
-boosttests.o: boosttests.cpp
-	g++ $(CF) -c boosttests.cpp
+server.o: GlbContainer.hh IPRecord.hh server.cc
+	g++ $(CF) -c server.cc
 
-ring_buffer.o: ring_buffer.h ring_buffer.cpp
-	g++ $(CF) -c ring_buffer.cpp
+client.o: client.cc
+	g++ $(CF) -c client.cc
 
-server.o: ring_buffer.h GlbContainer.h BitArray.h server.cpp
-	g++ $(CF) -c server.cpp
+lookup.o: lookup.cc lookup.hh
+	g++ $(CF) -c lookup.cc
 
-client.o: client.cpp
-	g++ $(CF) -c client.cpp
-
-lookup.o: lookup.cpp lookup.h
-	g++ $(CF) -c lookup.cpp
-
-server: server.o ring_buffer.o GlbContainer.o IPRecord.o BitArray.o
-	g++ $(CF) -o server server.o ring_buffer.o GlbContainer.o IPRecord.o BitArray.o -lboost_thread-mt -lboost_system-mt -lpthread
+server: server.o GlbContainer.o IPRecord.o
+	g++ $(CF) -o server server.o GlbContainer.o IPRecord.o -lboost_thread-mt -lboost_system-mt -lpthread
 
 client: client.o
 	g++ $(CF) -o client client.o -lboost_thread-mt -lboost_system-mt -lpthread
@@ -35,8 +29,8 @@ client: client.o
 lookup: lookup.o
 	g++ $(CF) -o lookup lookup.o -lboost_system-mt -lpthread
 
-boosttests: boosttests.o ring_buffer.o GlbContainer.o IPRecord.o BitArray.o
-	g++ $(CF) -o boosttests boosttests.o ring_buffer.o GlbContainer.o IPRecord.o BitArray.o -lboost_thread-mt -lboost_system-mt -lboost_unit_test_framework-mt
+boosttests: boosttests.o GlbContainer.o IPRecord.o
+	g++ $(CF) -o boosttests boosttests.o GlbContainer.o IPRecord.o -lboost_thread-mt -lboost_system-mt -lboost_unit_test_framework-mt
 
 clean:
 	rm *.o server client lookup boosttests

@@ -2,7 +2,7 @@
 #include<boost/asio.hpp>
 #include<boost/asio/ip/address.hpp>
 #include<boost/shared_ptr.hpp>
-#include"lookup.h"
+#include"lookup.hh"
 
 
 using namespace std;

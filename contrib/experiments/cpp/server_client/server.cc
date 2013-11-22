@@ -6,15 +6,17 @@
 #include<boost/thread.hpp>
 #include<boost/bind.hpp>
 #include<boost/chrono.hpp>
-#include"server.h"
-#include"GlbContainer.h"
-#include "ring_buffer.h"
+#include"server.hh"
+#include"GlbContainer.hh"
+#include"IPRecord.hh"
 
 using namespace std;
 using namespace boost;
 using namespace boost::asio;
 
 const int SOCKBUFFSIZE = 4096;
+const int STRBUFFSIZE = 4096;
+
 const boost::chrono::microseconds sdelay(50);
 const int INIT_RING_SIZE = 2;
 
@@ -35,6 +37,36 @@ int usage(char *prog) {
     cout << "Spawns off a threaded servicer that echos back commands" << endl;
     return 0;
 }
+
+int stringToVector(const std::string& strIn, std::vector<std::string>& strVector, char delim, bool skipLF) {
+    int nStrings = 0;
+    char buff[STRBUFFSIZE + 1];
+    buff[0] = '\0';
+    int ci = 0;
+    int cb = 0;
+    int cl;
+    int li = strIn.size();
+    for (ci = 0; ci <= li; ci++) {
+        cl = ci - cb;
+        char ch = strIn[ci];
+        if (ch == delim || ch == '\0' || cl >= STRBUFFSIZE || (skipLF && (ch == '\n' || ch == '\r'))) {
+            if (cl <= 0) {
+                cb = ci + 1;
+                buff[0] = '\0';
+                continue;
+            }
+            buff[ci - cb] = '\0';
+            cb = ci + 1;
+            strVector.push_back(std::string(buff));
+            nStrings++;
+            buff[0] = '\0';
+            continue;
+        }
+        buff[ci - cb] = strIn[ci];
+    }
+    return nStrings;
+}
+
 
 int listener(string ip_addr_str, int port) {
     io_service ios;
@@ -65,7 +97,7 @@ int server(shared_ptr<ip::tcp::iostream> tstream) {
         inLines.push_back(line);
 
         cmdArgs.clear();
-        ring_buffer::stringToVector(line, cmdArgs, ' ', true);
+        stringToVector(line, cmdArgs, ' ', true);
         if (cmdArgs.size() > 0 && cmdArgs[0].compare("OVER") == 0) {
             // Write Responses
             for (int i = 0; i < inLines.size(); i++) {
