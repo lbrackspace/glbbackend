@@ -1,4 +1,5 @@
 #include "GlbContainer.hh"
+#include "IPRecord.hh"
 
 #include<boost/unordered_map.hpp>
 #include<boost/thread/locks.hpp>

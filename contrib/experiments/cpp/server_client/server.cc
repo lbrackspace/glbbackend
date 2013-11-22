@@ -98,6 +98,8 @@ int server(shared_ptr<ip::tcp::iostream> tstream) {
 
         cmdArgs.clear();
         stringToVector(line, cmdArgs, ' ', true);
+
+        // OVER found begin processing messages
         if (cmdArgs.size() > 0 && cmdArgs[0].compare("OVER") == 0) {
             // Write Responses
             for (int i = 0; i < inLines.size(); i++) {
