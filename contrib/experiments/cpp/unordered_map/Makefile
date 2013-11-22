@@ -1,4 +1,4 @@
-CF= -O2 -I. -ggdb
+CF= -O0 -I. -ggdb
 all: unordered_map
 
 main.o: main.cpp

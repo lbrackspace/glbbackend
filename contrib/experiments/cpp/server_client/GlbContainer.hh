@@ -21,8 +21,8 @@ private:
     long nLookups;
     int glbType;
     std::string cname;
-    boost::mutex nLookupsLock;
-    boost::shared_mutex lock;
+    boost::mutex nLookupsMutex;
+    boost::shared_mutex glbMutex;
     std::vector<boost::shared_ptr<IPRecord> > ipBoth;
     std::vector<boost::shared_ptr<IPRecord> > ipv4;
     std::vector<boost::shared_ptr<IPRecord> > ipv6;
@@ -44,17 +44,17 @@ public:
     void setRandomAlgoIPVectors(std::vector<IPRecord>& ipv4Vals);
 
     void clrNLookups() {
-        boost::lock_guard<boost::mutex> lock(nLookupsLock);
+        boost::lock_guard<boost::mutex> lock(nLookupsMutex);
         nLookups = 0;
     }
 
     void incNLookups() {
-        boost::lock_guard<boost::mutex> lock(nLookupsLock);
+        boost::lock_guard<boost::mutex> lock(nLookupsMutex);
         nLookups++;
     }
 
     long getNLookups() {
-        boost::lock_guard<boost::mutex> lock(nLookupsLock);
+        boost::lock_guard<boost::mutex> lock(nLookupsMutex);
         return nLookups;
     }
     std::string to_string();
@@ -65,7 +65,7 @@ int strToGlbType(std::string str);
 std::string glbTypeToStr(int gt);
 
 extern boost::unordered_map<std::string, boost::shared_ptr<GlbContainer > > glbMap;
-extern boost::shared_mutex glbMapLock;
+extern boost::shared_mutex glbMapMutex;
 
 int gcdreduce(std::vector<int> &reduced_weights, std::vector<int> &weights, int& itercount);
 void expandweights(std::vector<int> &expanded, std::vector<int>&weights);

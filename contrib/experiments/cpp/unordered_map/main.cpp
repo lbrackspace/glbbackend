@@ -4,6 +4,7 @@
 #include<sstream>
 #include<boost/shared_array.hpp>
 #include<boost/unordered_map.hpp>
+#include<boost/shared_ptr.hpp>
 #include<boost/thread.hpp>
 #include<boost/thread/locks.hpp>
 #include<sys/time.h>
@@ -72,7 +73,7 @@ int main(int argc, char **argv) {
     boost::shared_array<char> cmd(new char[LINE_SIZE + 1]);
     boost::shared_mutex sm;
     vector<string> cmdArgs;
-    unordered_map<string, string> strMap;
+    unordered_map<string, shared_ptr<string> > strMap;
     int nArgs;
 
     do {
@@ -89,22 +90,22 @@ int main(int argc, char **argv) {
                 string key = cmdArgs[1];
                 string val = cmdArgs[2];
                 cout << "setting map[" << key << "] = " << val << endl;
-                strMap[key] = val;
+                strMap[key] = shared_ptr<string > (new string(val));
             } else if (nArgs >= 2 && cmdArgs[0].compare("get") == 0) {
                 string key = cmdArgs[1];
-                unordered_map<string, string>::iterator iter = strMap.find(key);
+                unordered_map<string, shared_ptr<string> >::iterator iter = strMap.find(key);
                 if (strMap.find(key) == strMap.end()) {
                     cout << "Key " << key << " not found" << endl;
                 } else {
-                    cout << "key " << key << " = " << iter->second << endl;
+                    cout << "key " << key << " = " << *(iter->second) << endl;
                 }
 
             } else if (nArgs >= 1 && cmdArgs[0].compare("keys") == 0) {
-                unordered_map<string, string>::iterator mi;
-                unordered_map<string, string>::iterator beg = strMap.begin();
-                unordered_map<string, string>::iterator end = strMap.end();
+                unordered_map<string, shared_ptr<string> >::iterator mi;
+                unordered_map<string, shared_ptr<string> >::iterator beg = strMap.begin();
+                unordered_map<string, shared_ptr<string> >::iterator end = strMap.end();
                 for (mi = beg; mi != end; mi++) {
-                    cout << "(" << mi->first << "," << mi->second << ")" << endl;
+                    cout << "(" << mi->first << "," << *(mi->second) << ")" << endl;
                 }
             } else if (nArgs >= 2 && cmdArgs[0].compare("del") == 0) {
                 string key = cmdArgs[1];
@@ -120,9 +121,9 @@ int main(int argc, char **argv) {
                 double startTime = gettimevalue();
                 long sum = 0;
                 for (int i = 0; i < nTimes; i++) {
-                    unordered_map<string, string>::iterator iter = strMap.find(key);
+                    unordered_map<string,shared_ptr<string> >::iterator iter = strMap.find(key);
                     if (iter != strMap.end()) {
-                        sum += iter->second.size();
+                        sum += iter->second->size();
                     }
                 }
                 double endTime = gettimevalue();
@@ -138,9 +139,9 @@ int main(int argc, char **argv) {
                 long sum = 0;
                 for (int i = 0; i < nTimes; i++) {
                     boost::shared_lock<shared_mutex > (sm);
-                    unordered_map<string, string>::iterator iter = strMap.find(key);
+                    unordered_map<string, shared_ptr<string> >::iterator iter = strMap.find(key);
                     if (iter != strMap.end()) {
-                        sum += iter->second.size();
+                        sum += iter->second->size();
                     }
                 }
                 double endTime = gettimevalue();

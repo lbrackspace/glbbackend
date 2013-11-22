@@ -18,13 +18,14 @@ const int SOCKBUFFSIZE = 4096;
 const int STRBUFFSIZE = 4096;
 
 const boost::chrono::microseconds sdelay(50);
-const int INIT_RING_SIZE = 2;
 
 int main(int argc, char **argv) {
     if (argc < 3) {
         usage(argv[0]);
         return -1;
     }
+    glbMap["cname_1.rackexp.org"] = shared_ptr<GlbContainer > (new GlbContainer("cname_1.rackexp.org", GlbType::NONE));
+    glbMap["cname_2.rackexp.org"] = shared_ptr<GlbContainer > (new GlbContainer("cname_2.rackexp.org", GlbType::NONE));
     string ip_addr_str(argv[1]);
     int port = std::atoi(argv[2]);
     listener(ip_addr_str, port);
@@ -67,7 +68,6 @@ int stringToVector(const std::string& strIn, std::vector<std::string>& strVector
     return nStrings;
 }
 
-
 int listener(string ip_addr_str, int port) {
     io_service ios;
     cout << "Resolving ip Address " << ip_addr_str << "for port " << port << endl;
@@ -86,24 +86,51 @@ int listener(string ip_addr_str, int port) {
     return 0;
 }
 
+void debug_domains(vector<string>& outLines) {
+    shared_lock<shared_mutex> lock(glbMapMutex);
+    unordered_map<string, shared_ptr<GlbContainer> >::iterator mi;
+    unordered_map<string, shared_ptr<GlbContainer> >::iterator beg = glbMap.begin();
+    unordered_map<string, shared_ptr<GlbContainer> >::iterator end = glbMap.end();
+    for (mi = beg; mi != end; mi++) {
+        ostringstream os;
+        string key(mi->first);
+        shared_ptr<GlbContainer> glb(mi->second);
+        string val = (*glb).to_string(true);
+        os << key << ":" << val;
+        outLines.push_back(os.str());
+    }
+}
+
 int server(shared_ptr<ip::tcp::iostream> tstream) {
     string line;
     vector<string> inLines;
-    vector<string> cmdArgs;
+    vector<string> outLines;
+    vector<string> mainCmd;
+    vector<string> inCmdArgs;
     do {
         // Read until OVER
         line.clear();
         getline(*tstream, line);
         inLines.push_back(line);
 
-        cmdArgs.clear();
-        stringToVector(line, cmdArgs, ' ', true);
+        mainCmd.clear();
+        stringToVector(line, mainCmd, ' ', true);
 
         // OVER found begin processing messages
-        if (cmdArgs.size() > 0 && cmdArgs[0].compare("OVER") == 0) {
+        if (mainCmd.size() > 0 && mainCmd[0].compare("OVER") == 0) {
             // Write Responses
-            for (int i = 0; i < inLines.size(); i++) {
-                (*tstream) << "Echo " << inLines[i] << endl;
+            outLines.clear();
+            for (int i = 0; i < inLines.size(); i++) { // For each message from the DMC
+                inCmdArgs.clear();
+                stringToVector(inLines[i], inCmdArgs, ' ', true);
+                if (inCmdArgs.size() > 0 && inCmdArgs[0].compare("DEBUG_DOMAINS") == 0) {
+                    debug_domains(outLines);
+                }
+            }
+
+            // Write outputBuffer
+            for (int i = 0; i < outLines.size(); i++) {
+                (*tstream) << outLines[i] << endl;
             }
             (*tstream) << "OVER" << endl;
             inLines.clear();

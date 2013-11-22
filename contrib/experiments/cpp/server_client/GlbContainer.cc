@@ -25,7 +25,7 @@ std::string GlbContainer::to_string() {
 
 std::string GlbContainer::to_string(bool showIps) {
     std::ostringstream os;
-    boost::shared_lock<boost::shared_mutex> sl(lock);
+    boost::shared_lock<boost::shared_mutex> sl(glbMutex);
     os << "{ cname=" << cname
             << ", nsLookups=" << nLookups
             << ", glbType=" << glbTypeToStr(glbType)
@@ -79,7 +79,7 @@ std::string glbTypeToStr(int gt) {
 }
 
 void GlbContainer::setRandomAlgoIPVectors(std::vector<IPRecord>& ipVec) {
-    boost::lock_guard<boost::shared_mutex> lk(lock);
+    boost::lock_guard<boost::shared_mutex> lk(glbMutex);
     ipv4.clear();
     ipv6.clear();
     std::vector<IPRecord>::iterator it;
@@ -142,4 +142,4 @@ int gcdreduce(std::vector<int> &reduced_weights, std::vector<int> &weights, int&
 
 
 boost::unordered_map<std::string, boost::shared_ptr<GlbContainer> > glbMap;
-boost::shared_mutex glbMapLock;
+boost::shared_mutex glbMapMutex;
