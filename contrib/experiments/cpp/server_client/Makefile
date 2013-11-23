@@ -1,4 +1,4 @@
-CF=-O0 -ggdb -I.
+CF=-O3 -ggdb -I.
 
 all: server client lookup boosttests
 

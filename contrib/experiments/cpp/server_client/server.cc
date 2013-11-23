@@ -1,11 +1,13 @@
 #include<iostream>
 #include<cstdlib>
 #include<unistd.h>
+#include<ctime>
 #include<deque>
 #include<boost/asio.hpp>
 #include<boost/thread.hpp>
 #include<boost/bind.hpp>
 #include<boost/chrono.hpp>
+#include<boost/algorithm/string.hpp>
 #include"server.hh"
 #include"GlbContainer.hh"
 #include"IPRecord.hh"
@@ -39,33 +41,22 @@ int usage(char *prog) {
     return 0;
 }
 
-int stringToVector(const std::string& strIn, std::vector<std::string>& strVector, char delim, bool skipLF) {
-    int nStrings = 0;
-    char buff[STRBUFFSIZE + 1];
-    buff[0] = '\0';
-    int ci = 0;
-    int cb = 0;
-    int cl;
-    int li = strIn.size();
-    for (ci = 0; ci <= li; ci++) {
-        cl = ci - cb;
-        char ch = strIn[ci];
-        if (ch == delim || ch == '\0' || cl >= STRBUFFSIZE || (skipLF && (ch == '\n' || ch == '\r'))) {
-            if (cl <= 0) {
-                cb = ci + 1;
-                buff[0] = '\0';
-                continue;
-            }
-            buff[ci - cb] = '\0';
-            cb = ci + 1;
-            strVector.push_back(std::string(buff));
-            nStrings++;
-            buff[0] = '\0';
-            continue;
-        }
-        buff[ci - cb] = strIn[ci];
+bool cmdMatch(int nArgs, const vector<string>& sv, string expected) {
+    if (sv.size() >= nArgs && sv[0].compare(expected) == 0) {
+        return true;
     }
-    return nStrings;
+    return false;
+}
+
+int splitStr(vector<string>& svOut, string strIn) {
+    boost::algorithm::replace_all(strIn, "\n", "");
+    boost::algorithm::replace_all(strIn, "\r", "");
+    boost::algorithm::split(svOut, strIn, boost::algorithm::is_any_of(" "), boost::token_compress_on);
+    return svOut.size();
+}
+
+string joinStr(const vector<string>& strIn, string delim) {
+    return boost::algorithm::join(strIn, delim);
 }
 
 int listener(string ip_addr_str, int port) {
@@ -86,19 +77,30 @@ int listener(string ip_addr_str, int port) {
     return 0;
 }
 
-void debug_domains(vector<string>& outLines) {
+void debug_domains(vector<string>& outLines, string line) {
+    int nLoops = 1;
+    vector<string> args;
+    if (splitStr(args, line) >= 2) {
+        nLoops = std::atoi(args[1].c_str());
+    }
     shared_lock<shared_mutex> lock(glbMapMutex);
     unordered_map<string, shared_ptr<GlbContainer> >::iterator mi;
     unordered_map<string, shared_ptr<GlbContainer> >::iterator beg = glbMap.begin();
     unordered_map<string, shared_ptr<GlbContainer> >::iterator end = glbMap.end();
-    for (mi = beg; mi != end; mi++) {
-        ostringstream os;
-        string key(mi->first);
-        shared_ptr<GlbContainer> glb(mi->second);
-        string val = (*glb).to_string(true);
-        os << key << ":" << val;
-        outLines.push_back(os.str());
+    for (int i = 0; i < nLoops; i++) {
+        for (mi = beg; mi != end; mi++) {
+            string key(mi->first);
+            shared_ptr<GlbContainer> glb(mi->second);
+            string val = (*glb).to_string(false);
+            outLines.push_back(key + ":" + val);
+        }
     }
+}
+
+void unknown_command(vector<string>&outLines, string line) {
+    ostringstream os;
+    os << "UNKNOWN COMMAND: " << line;
+    outLines.push_back(os.str());
 }
 
 int server(shared_ptr<ip::tcp::iostream> tstream) {
@@ -111,29 +113,41 @@ int server(shared_ptr<ip::tcp::iostream> tstream) {
         // Read until OVER
         line.clear();
         getline(*tstream, line);
-        inLines.push_back(line);
 
         mainCmd.clear();
-        stringToVector(line, mainCmd, ' ', true);
+        splitStr(mainCmd, line);
 
-        // OVER found begin processing messages
+        // If OVER found begin processing messages
         if (mainCmd.size() > 0 && mainCmd[0].compare("OVER") == 0) {
+            clock_t startTime = clock();
             // Write Responses
             outLines.clear();
             for (int i = 0; i < inLines.size(); i++) { // For each message from the DMC
                 inCmdArgs.clear();
-                stringToVector(inLines[i], inCmdArgs, ' ', true);
-                if (inCmdArgs.size() > 0 && inCmdArgs[0].compare("DEBUG_DOMAINS") == 0) {
-                    debug_domains(outLines);
+                splitStr(inCmdArgs, inLines[i]);
+                if (cmdMatch(1, inCmdArgs, "DEBUG_DOMAINS")) {
+                    debug_domains(outLines, inLines[i]);
+                } else {
+                    unknown_command(outLines, inLines[i]);
                 }
             }
-
+            clock_t endTime = clock();
+            double processTime = static_cast<double> (endTime - startTime) / CLOCKS_PER_SEC;
             // Write outputBuffer
-            for (int i = 0; i < outLines.size(); i++) {
-                (*tstream) << outLines[i] << endl;
-            }
-            (*tstream) << "OVER" << endl;
+            startTime = clock();
+            //for (int i = 0; i < outLines.size(); i++) {
+            //    (*tstream) << outLines[i] << endl;
+            //}
+            outLines.push_back("OVER");
+            (*tstream) << joinStr(outLines, "\n") << endl;
+            //            (*tstream) << "OVER" << endl;
             inLines.clear();
+            //clock_t endTime = clock();
+            endTime = clock();
+            double writeTime = static_cast<double> (endTime - startTime) / CLOCKS_PER_SEC;
+            cout << "PROCESS LOOP FINISHED IN " << processTime << " seconds. Tool " << writeTime << " seconds to write output." << endl;
+        } else {
+            inLines.push_back(line); // Otherwise store the line on the input buffer
         }
     } while (!tstream->eof());
     cout << "closeing socket" << tstream->rdbuf()->remote_endpoint() << endl;

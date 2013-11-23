@@ -13,7 +13,7 @@
 #include<deque>
 #include<boost/unordered_map.hpp>
 #include<boost/interprocess/mapped_region.hpp>
-
+#include<boost/algorithm/string.hpp>
 #include"DemoUtils.h"
 #include"ThreadManager.h"
 #include"Matrix.h"
@@ -373,6 +373,16 @@ int main(int argc, char **argv) {
             } else if (nArgs >= 2 && cmdArgs[0].compare("bag") == 0) {
                 int bit_idx = std::atoi(cmdArgs[1].c_str());
                 cout << "getting bit[" << bit_idx << "] = " << ba.getBit(bit_idx) << endl;
+            } else if (nArgs >= 1 && cmdArgs[0].compare("splitstr") == 0) {
+                string striplr(cmd);
+                boost::algorithm::replace_all(striplr, "\r", "");
+                boost::algorithm::replace_all(striplr, "\n", "");
+                vector<string>splitStr;
+                boost::algorithm::split(splitStr, striplr, boost::algorithm::is_any_of(" "), boost::token_compress_on);
+                int splitSize = splitStr.size();
+                for (i = 0; i < splitSize; i++) {
+                    cout << "splitStr[" << i << "]=\"" << splitStr[i] << "\"" << endl;
+                }
             } else {
                 cout << "Unknown command" << cmd << endl;
                 cout << help() << endl;
@@ -449,7 +459,7 @@ string help() {
             << "bab #display the bit array in binar" << endl
             << "bas <bitNum> <bitVal> #set the bitNumber to the bitval" << endl
             << "bag <bitNum> #Read the bit at the specified address" << endl
-
+            << "splitstr <str> #split str into string vector" << endl
             << "exit #Exit program" << endl;
 
     return os.str();
