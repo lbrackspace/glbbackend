@@ -23,9 +23,7 @@ private:
     std::string cname;
     boost::mutex nLookupsMutex;
     boost::shared_mutex glbMutex;
-    std::vector<boost::shared_ptr<IPRecord> > ipBoth;
-    std::vector<boost::shared_ptr<IPRecord> > ipv4;
-    std::vector<boost::shared_ptr<IPRecord> > ipv6;
+    std::vector<boost::shared_ptr<IPRecord> > ip;
     std::vector<int> weightsBoth;
     std::vector<int> weightsIpv4;
     std::vector<int> weightsIpv6;

@@ -26,8 +26,6 @@ int main(int argc, char **argv) {
         usage(argv[0]);
         return -1;
     }
-    glbMap["cname_1.rackexp.org"] = shared_ptr<GlbContainer > (new GlbContainer("cname_1.rackexp.org", GlbType::NONE));
-    glbMap["cname_2.rackexp.org"] = shared_ptr<GlbContainer > (new GlbContainer("cname_2.rackexp.org", GlbType::NONE));
     string ip_addr_str(argv[1]);
     int port = std::atoi(argv[2]);
     listener(ip_addr_str, port);
@@ -75,6 +73,45 @@ int listener(string ip_addr_str, int port) {
         th.detach();
     }
     return 0;
+}
+
+void del_domain(vector<string>& outLines, string line) {
+    vector<string> inLines;
+    int nArgs = splitStr(inLines, line);
+    string cname = inLines[1];
+    if (nArgs < 2) {
+        outLines.push_back("DEL_DOMAIN FAILED: Needed cname argument for command");
+        return;
+    }
+    lock_guard<shared_mutex> lock(glbMapMutex);
+}
+
+void add_domain(vector<string>& outLines, string line) {
+    vector<string> inLines;
+    int nArgs = splitStr(inLines, line);
+    if (nArgs < 3) {
+        outLines.push_back("ADD_DOMAIN FAILED: Needed cname and algo argument for command arguments for command");
+        return;
+    }
+    string cname = inLines[1];
+    string algoName = inLines[2];
+    int glbType = strToGlbType(algoName);
+    if (glbType < 0) {
+        outLines.push_back("ADD_DOMAIN FAILED: " + cname + " Unknown Algo " + algoName);
+        return;
+    }
+    shared_ptr<GlbContainer> glb(new GlbContainer(cname, glbType));
+
+    { // Scope for glbMapLock
+        lock_guard<shared_mutex> mapLock(glbMapMutex);
+        unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(cname);
+        if (it != glbMap.end()) {
+            outLines.push_back("ADD_DOMAIN FAILED: " + cname + " already exists can not add");
+            return;
+        }
+        glbMap[cname] = glb;
+    } // releasing glbMapLock;
+    outLines.push_back("ADD_DOMAIN PASSED: " + cname);
 }
 
 void debug_domains(vector<string>& outLines, string line) {
@@ -127,6 +164,8 @@ int server(shared_ptr<ip::tcp::iostream> tstream) {
                 splitStr(inCmdArgs, inLines[i]);
                 if (cmdMatch(1, inCmdArgs, "DEBUG_DOMAINS")) {
                     debug_domains(outLines, inLines[i]);
+                } else if (cmdMatch(3, inCmdArgs, "ADD_DOMAIN")) {
+                    add_domain(outLines, inLines[i]);
                 } else {
                     unknown_command(outLines, inLines[i]);
                 }

@@ -27,7 +27,7 @@ int strToIpType(std::string str) {
     static boost::unordered_map<std::string, int> strToIpTypeMap = buildStrToIpTypeMap();
     boost::unordered_map<std::string, int>::const_iterator it = strToIpTypeMap.find(str);
     if (it == strToIpTypeMap.end()) {
-        return IPRecordType::NONE;
+        return -1;
     }
     return it->second;
 }

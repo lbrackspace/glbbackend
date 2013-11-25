@@ -29,25 +29,13 @@ std::string GlbContainer::to_string(bool showIps) {
     os << "{ cname=" << cname
             << ", nsLookups=" << nLookups
             << ", glbType=" << glbTypeToStr(glbType)
-            << ", nIPv4=" << ipv4.size()
-            << ", nIPv6=" << ipv6.size()
-            << ", nIPBoth=" << ipBoth.size()
+            << ", nIp=" << ip.size()
             << "}";
     if (showIps) {
         std::vector<boost::shared_ptr<IPRecord> >::iterator it;
         std::vector<boost::shared_ptr<IPRecord> >::iterator end;
-        end = ipv4.end();
-        for (it = ipv4.begin(); it != end; it++) {
-            IPRecord *ptr = (*it).get();
-            os << ptr->to_string() << " ";
-        }
-        end = ipv6.end();
-        for (it = ipv6.begin(); it != end; it++) {
-            IPRecord *ptr = (*it).get();
-            os << ptr->to_string() << " ";
-        }
-        end = ipBoth.end();
-        for (it = ipBoth.begin(); it != end; it++) {
+        end = ip.end();
+        for (it = ip.begin(); it != end; it++) {
             IPRecord *ptr = (*it).get();
             os << ptr->to_string() << " ";
         }
@@ -59,7 +47,7 @@ int strToGlbType(std::string str) {
     static boost::unordered_map<std::string, int> strToGlbTypeMap = buildStrToGlbTypeMap();
     boost::unordered_map<std::string, int>::const_iterator it = strToGlbTypeMap.find(str);
     if (it == strToGlbTypeMap.end()) {
-        return GlbType::NONE;
+        return -1;
     }
     return it->second;
 }
@@ -80,20 +68,16 @@ std::string glbTypeToStr(int gt) {
 
 void GlbContainer::setRandomAlgoIPVectors(std::vector<IPRecord>& ipVec) {
     boost::lock_guard<boost::shared_mutex> lk(glbMutex);
-    ipv4.clear();
-    ipv6.clear();
     std::vector<IPRecord>::iterator it;
     std::vector<IPRecord>::iterator end = ipVec.end();
     for (it = ipVec.begin(); it != end; it++) {
         int itype = (*it).getIPType();
         switch (itype) {
             case IPRecordType::IPv4:
-                ipv4.push_back(boost::shared_ptr<IPRecord > (new IPRecord(*it)));
-                ipBoth.push_back(boost::shared_ptr<IPRecord > (new IPRecord(*it)));
+                ip.push_back(boost::shared_ptr<IPRecord > (new IPRecord(*it)));
                 break;
             case IPRecordType::IPv6:
-                ipv6.push_back(boost::shared_ptr<IPRecord > (new IPRecord(*it)));
-                ipBoth.push_back(boost::shared_ptr<IPRecord > (new IPRecord(*it)));
+                ip.push_back(boost::shared_ptr<IPRecord > (new IPRecord(*it)));
                 break;
             default: // Report an Error here some how back to DC master
                 break;
