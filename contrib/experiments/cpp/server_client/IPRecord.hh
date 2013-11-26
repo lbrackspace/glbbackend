@@ -67,6 +67,6 @@ public:
 
 int strToIpType(std::string str);
 std::string ipTypeToStr(int ipt);
-
+bool validIpType(int ipType);
 #endif	/* IPRECORD_H */
 

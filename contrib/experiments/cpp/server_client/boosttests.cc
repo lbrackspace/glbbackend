@@ -50,7 +50,7 @@ BOOST_AUTO_TEST_CASE(test_IP_to_string) {
     ipVec.push_back(IPRecord(IPRecordType::IPv6, "::", 30));
     ipVec.push_back(IPRecord(IPRecordType::IPv6, "ffee::", 30));
     GlbContainer glb("testglb.rackexp.org", GlbType::RANDOM);
-    glb.setRandomAlgoIPVectors(ipVec);
+    glb.setIPs(ipVec);
     for (int i = 0; i < 16; i++) {
         glb.incNLookups();
     }

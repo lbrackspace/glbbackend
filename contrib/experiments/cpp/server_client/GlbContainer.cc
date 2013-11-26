@@ -29,13 +29,13 @@ std::string GlbContainer::to_string(bool showIps) {
     os << "{ cname=" << cname
             << ", nsLookups=" << nLookups
             << ", glbType=" << glbTypeToStr(glbType)
-            << ", nIp=" << ip.size()
+            << ", nIp=" << ips.size()
             << "}";
     if (showIps) {
         std::vector<boost::shared_ptr<IPRecord> >::iterator it;
         std::vector<boost::shared_ptr<IPRecord> >::iterator end;
-        end = ip.end();
-        for (it = ip.begin(); it != end; it++) {
+        end = ips.end();
+        for (it = ips.begin(); it != end; it++) {
             IPRecord *ptr = (*it).get();
             os << ptr->to_string() << " ";
         }
@@ -66,22 +66,13 @@ std::string glbTypeToStr(int gt) {
     return std::string("NONE");
 }
 
-void GlbContainer::setRandomAlgoIPVectors(std::vector<IPRecord>& ipVec) {
-    boost::lock_guard<boost::shared_mutex> lk(glbMutex);
+void GlbContainer::setIPs(std::vector<IPRecord>& ipsIn) {
+    boost::lock_guard<boost::shared_mutex> lock(glbMutex);
+    std::vector<IPRecord>::iterator beg = ipsIn.begin();
+    std::vector<IPRecord>::iterator end = ipsIn.end();
     std::vector<IPRecord>::iterator it;
-    std::vector<IPRecord>::iterator end = ipVec.end();
-    for (it = ipVec.begin(); it != end; it++) {
-        int itype = (*it).getIPType();
-        switch (itype) {
-            case IPRecordType::IPv4:
-                ip.push_back(boost::shared_ptr<IPRecord > (new IPRecord(*it)));
-                break;
-            case IPRecordType::IPv6:
-                ip.push_back(boost::shared_ptr<IPRecord > (new IPRecord(*it)));
-                break;
-            default: // Report an Error here some how back to DC master
-                break;
-        }
+    for (it = beg; it != end; it++) {
+        ips.push_back(boost::shared_ptr<IPRecord > (new IPRecord(*it)));
     }
 }
 

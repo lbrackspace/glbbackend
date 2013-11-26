@@ -44,3 +44,9 @@ std::string ipTypeToStr(int ipt) {
     return std::string("NONE");
 }
 
+bool validIpType(int ipType) {
+    if (ipType < 0 || ipType > 2) {
+        return false;
+    }
+    return true;
+}
