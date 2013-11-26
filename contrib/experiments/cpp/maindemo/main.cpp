@@ -2,6 +2,7 @@
 #include<boost/smart_ptr.hpp>
 #include<boost/asio.hpp>
 #include<boost/thread.hpp>
+#include<boost/thread/locks.hpp>
 #include<exception>
 #include<stdexcept>
 #include<sstream>
@@ -468,6 +469,7 @@ string help() {
 string showsizeof() {
     ostringstream os;
     os << "Sizeof:" << endl
+            << "sizeof(bool):                " << setw(4) << sizeof (bool) << endl
             << "sizeof(char):                " << setw(4) << sizeof (char) << endl
             << "sizeof(int):                 " << setw(4) << sizeof (int) << endl
             << "sizeof(long):                " << setw(4) << sizeof (long) << endl
@@ -479,7 +481,7 @@ string showsizeof() {
             << "sizeof(string):              " << setw(4) << sizeof (string) << endl
             << "sizeof(boost::thread):       " << setw(4) << sizeof (boost::thread) << endl
             << "sizeof(boost::mutex):        " << setw(4) << sizeof (boost::mutex) << endl
-            << "sizeof(noost::shared_mutex): " << setw(4) << sizeof (boost::shared_mutex) << endl
+            << "sizeof(boost::shared_mutex): " << setw(4) << sizeof (boost::shared_mutex) << endl
             << "sizeof(ThreadManager):       " << setw(4) << sizeof (ThreadManager) << endl
             << "sizeof(Matrix):              " << setw(4) << sizeof (Matrix) << endl
             << "sizeof(bool):                " << setw(4) << sizeof (bool) << endl
@@ -490,7 +492,8 @@ string showsizeof() {
             << "sizeof(unordered_map):       " << setw(4) << sizeof (unordered_map<string, string>) << endl
             << "sizeof(ring_buffer):         " << setw(4) << sizeof (ring_buffer) << endl
             << "sizeof(boost::ip::tcp::resolver " << setw(4) << sizeof (boost::asio::ip::tcp::resolver) << endl
-            << "sizeof(boost::ip::tcp::resolver::iterator " << setw(4) << sizeof (boost::asio::ip::tcp::resolver::iterator) << endl
+            << "sizeof(boost::ip::tcp::resolver::iterator) " << setw(4) << sizeof (boost::asio::ip::tcp::resolver::iterator) << endl
+            << "sizeof(boost::condition_variable) " << setw(4) << sizeof(boost::condition_variable) << endl
             << endl
             << "boost::thread::hardware_concurrency(): " << setw(4) << boost::thread::hardware_concurrency() << endl
             << "mapped_region::get_page_size():        " << setw(4) << boost::interprocess::mapped_region::get_page_size() << endl;
