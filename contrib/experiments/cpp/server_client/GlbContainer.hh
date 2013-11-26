@@ -39,7 +39,9 @@ public:
     virtual ~GlbContainer() {
     };
 
-    void setRandomAlgoIPVectors(std::vector<IPRecord>& ipv4Vals);
+    void setIPs(const std::vector<IPRecord>& ipv4Vals);
+
+    std::vector<IPRecord> getIPs(int ipType);
 
     void clrNLookups() {
         boost::lock_guard<boost::mutex> lock(nLookupsMutex);

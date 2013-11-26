@@ -66,11 +66,11 @@ std::string glbTypeToStr(int gt) {
     return std::string("NONE");
 }
 
-void GlbContainer::setRandomAlgoIPVectors(std::vector<IPRecord>& ipVec) {
+void GlbContainer::setIPs(const std::vector<IPRecord>& ips) {
     boost::lock_guard<boost::shared_mutex> lk(glbMutex);
     std::vector<IPRecord>::iterator it;
-    std::vector<IPRecord>::iterator end = ipVec.end();
-    for (it = ipVec.begin(); it != end; it++) {
+    std::vector<IPRecord>::iterator end = ips.end();
+    for (it = ips.begin(); it != end; it++) {
         int itype = (*it).getIPType();
         switch (itype) {
             case IPRecordType::IPv4:
