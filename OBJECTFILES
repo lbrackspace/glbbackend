@@ -1,1 +1,1 @@
-glbbackend.o
+glbbackend.o GlbContainer.o IPRecord.o GLBCollection.o server.o
