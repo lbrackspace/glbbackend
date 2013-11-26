@@ -23,7 +23,7 @@ private:
     std::string cname;
     boost::mutex nLookupsMutex;
     boost::shared_mutex glbMutex;
-    std::vector<boost::shared_ptr<IPRecord> > ip;
+    std::vector<boost::shared_ptr<IPRecord> > ips;
     std::vector<int> weightsBoth;
     std::vector<int> weightsIpv4;
     std::vector<int> weightsIpv6;
@@ -39,9 +39,7 @@ public:
     virtual ~GlbContainer() {
     };
 
-    void setIPs(const std::vector<IPRecord>& ipv4Vals);
-
-    std::vector<IPRecord> getIPs(int ipType);
+    void setIPs(std::vector<IPRecord>& ips);
 
     void clrNLookups() {
         boost::lock_guard<boost::mutex> lock(nLookupsMutex);

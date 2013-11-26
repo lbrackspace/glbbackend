@@ -1,0 +1,7 @@
+ADD_DOMAIN t1.rackexp.org NONE
+ADD_DOMAIN t2.rackexp.org NONE
+ADD_DOMAIN t3.rackexp.org NONE
+SNAPSHOT t1.rackexp.org 4-30-127.0.0.1-0 4-30-192.268.3.50-0 6-5-abcd::efg7-0
+SNAPSHOT t2.rackexp.org 4-30-127.0.0.1-0 4-30-192.268.3.50-0 6-5-abcd::efg7-0
+SNAPSHOT t3.rackexp.org 4-30-127.0.0.1-0 4-30-192.268.3.50-0 6-5-abcd::efg7-0
+OVER
