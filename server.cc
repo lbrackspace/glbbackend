@@ -26,7 +26,6 @@ const int STRBUFFSIZE = 4096;
 
 const boost::chrono::microseconds sdelay(50);
 
-
 bool cmdMatch(int nArgs, const vector<string>& sv, string expected) {
     if (sv.size() >= nArgs && sv[0].compare(expected) == 0) {
         return true;
@@ -43,6 +42,11 @@ int splitStr(vector<string>& svOut, string strIn, string delim) {
 
 string joinStr(const vector<string>& strIn, string delim) {
     return boost::algorithm::join(strIn, delim);
+}
+
+void start_server_thread(std::string ip_addr_str, int port) {
+    boost::thread th(bind(listener, ip_addr_str, port));
+    th.detach();
 }
 
 int listener(string ip_addr_str, int port) {
@@ -125,7 +129,8 @@ void del_domain(vector<string>& outLines, string line) {
         outLines.push_back("DEL_DOMAIN FAILED: Needed cname argument for command");
         return;
     }
-    {
+
+/*    {
         lock_guard<shared_mutex> lock(glbMapMutex);
         unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(cname);
         if (it == glbMap.end()) {
@@ -134,7 +139,7 @@ void del_domain(vector<string>& outLines, string line) {
         }
         glbMap.erase(cname);
         outLines.push_back("DEL_DOMAIN PASSED: " + cname);
-    }
+    }*/
 }
 
 void add_domain(vector<string>& outLines, string line) {
@@ -153,10 +158,9 @@ void add_domain(vector<string>& outLines, string line) {
     }
     shared_ptr<GlbContainer> glb(new GlbContainer(cname, glbType));
 
-    try{
+    try {
         glbCollection.add(cname, glb);
-    }
-    catch(GLBExistsException& glbExistsException){
+    } catch (GLBExistsException& glbExistsException) {
         outLines.push_back("ADD_DOMAIN FAILED: " + cname + " already exists can not add");
         return;
     }

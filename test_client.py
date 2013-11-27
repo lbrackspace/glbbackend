@@ -42,7 +42,7 @@ for i in xrange(0,128000):
     add_domain(fp,i)
     snapshot(fp,i,25)
 
-for i in xrange(0,1000000):
+for i in xrange(0,128000):
     del_domain(fp,i)
 
 nl = 0

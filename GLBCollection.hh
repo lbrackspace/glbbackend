@@ -8,32 +8,31 @@
 #include <boost/shared_ptr.hpp>
 #include <stdexcept>
 
-
-class GLBNotFoundException : std::runtime_error
-{
+class GLBNotFoundException : std::runtime_error {
 public:
-  GLBNotFoundException() : std::runtime_error("GLB Not Found"){}
+
+    GLBNotFoundException() : std::runtime_error("GLB Not Found") {
+    }
 };
 
-
-class GLBExistsException : std::runtime_error
-{
+class GLBExistsException : std::runtime_error {
 public:
-  GLBExistsException() : std::runtime_error("GLB Already Exists"){}
+
+    GLBExistsException() : std::runtime_error("GLB Already Exists") {
+    }
 };
 
-
-class GLBCollection
-{
+class GLBCollection {
 private:
-  boost::unordered_map<std::string, boost::shared_ptr<GlbContainer> > glbMap;
+    boost::unordered_map<std::string, boost::shared_ptr<GlbContainer> > glbMap;
+
 public:
-  GLBCollection();
-  void add(std::string key, boost::shared_ptr<GlbContainer>& glb);
-  void remove(std::string key);
-  boost::shared_ptr<GlbContainer> get(std::string key);
-  int size();
-  virtual ~GLBCollection();
+    GLBCollection();
+    void add(std::string key, boost::shared_ptr<GlbContainer>& glb);
+    void remove(std::string key);
+    boost::shared_ptr<GlbContainer> get(std::string key);
+    int size();
+    virtual ~GLBCollection();
 };
 
 extern GLBCollection glbCollection;
