@@ -59,7 +59,7 @@ s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 s.connect(("127.0.0.1",8888))
 fp = s.makefile("rw")
 
-for i in xrange(0,128):
+for i in xrange(0,32):
     add_domain(fp,i)
     snapshot(fp,i,25)
 
@@ -69,7 +69,7 @@ drain(fp)
 sys.exit()
 
 
-for i in xrange(0,128000):
+for i in xrange(0,128):
     del_domain(fp,i)
 
 nl = 0

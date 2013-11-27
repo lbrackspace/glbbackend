@@ -168,6 +168,24 @@ void add_domain(vector<string>& outLines, string line) {
     outLines.push_back("ADD_DOMAIN PASSED: " + cname);
 }
 
+void clr_counts(std::vector<std::string>& outLines, std::string line) {
+    vector<string>args;
+    int nArgs = splitStr(args, line, " ");
+    for (int i = 1; i < nArgs; i++) {
+        string cname = args[i];
+        {
+            shared_lock<shared_mutex> lock(glbMapMutex);
+            unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(cname);
+            if (it == glbMap.end()) {
+                outLines.push_back("CLR_COUNTS " + cname + " FAILED: cname doesn't exist");
+                continue;
+            }
+            (it->second)->clrNLookups();
+            outLines.push_back("CLR_COUNTS " + cname + " PASSED");
+        }
+    }
+}
+
 void get_counts(std::vector<std::string>& outLines, std::string line) {
     vector<string> args;
     int nArgs = splitStr(args, line, " ");
@@ -178,11 +196,11 @@ void get_counts(std::vector<std::string>& outLines, std::string line) {
             string cname(args[i]);
             unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(cname);
             if (it == glbMap.end()) {
-                outLines.push_back("COUNT " + cname + " FAILED: cname doesn't exist");
+                outLines.push_back("COUNTS " + cname + " FAILED: cname doesn't exist");
                 continue;
             }
             ostringstream os;
-            os << "COUNT " + cname << " PASSED: " << (it->second)->getNLookups();
+            os << "COUNTS " + cname << " PASSED: " << (it->second)->getNLookups();
             outLines.push_back(os.str());
         }
     } else {
@@ -262,6 +280,8 @@ int server(shared_ptr<ip::tcp::iostream> tstream) {
                         snapshot_domain(outLines, inLines[i]);
                     } else if (cmdMatch(1, inCmdArgs, "COUNTS")) {
                         get_counts(outLines, inLines[i]);
+                    } else if (cmdMatch(1, inCmdArgs, "CLR_COUNTS")) {
+                        clr_counts(outLines, inLines[i]);
                     } else {
                         unknown_command(outLines, inLines[i]);
                     }
