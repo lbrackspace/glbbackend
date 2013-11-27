@@ -104,7 +104,7 @@ void snapshot_domain(std::vector<std::string> &outLines, std::string line) {
             os << " r" << curr_ip << ":Unknown_ipType";
             continue;
         }
-        ips.push_back(IPRecord(ipType, ip, ttl));
+        ips.push_back(IPRecord(ipt, ip, ttl));
         os << " a" << curr_ip;
     }
     // Find the glb from the map

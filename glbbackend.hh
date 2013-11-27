@@ -11,19 +11,21 @@
 #include <string>
 #include <map>
 //#include "pdns/backends/gsql/gsqlbackend.hh"
+#include "GlbContainer.hh"
+#include "IPRecord.hh"
 #include "pdns/namespaces.hh"
 
-class GLBBackend : public DNSBackend
-{
+class GLBBackend : public DNSBackend {
 public:
-  GLBBackend(const string &suffix="");
-  bool list(const string &target, int id);
-  void lookup(const QType &type, const string &qdomain, DNSPacket *p, int zoneId);
-  bool get(DNSResourceRecord &rr);
+    GLBBackend(const string &suffix = "");
+    bool list(const string &target, int id);
+    void lookup(const QType &type, const string &qdomain, DNSPacket *p, int zoneId);
+    bool get(DNSResourceRecord &rr);
 
 private:
-  string d_answer;
-  string d_ourname;
+    std::deque<IPRecord> ips;
+    string d_answer;
+    string d_ourname;
 };
 
 
