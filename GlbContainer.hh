@@ -21,14 +21,14 @@ private:
     long nLookups;
     int glbType;
     std::string cname;
-    boost::mutex nLookupsMutex;
-    boost::shared_mutex glbMutex;
     std::vector<boost::shared_ptr<IPRecord> > ips;
     std::vector<int> weightsBoth;
     std::vector<int> weightsIpv4;
     std::vector<int> weightsIpv6;
 
 public:
+    boost::mutex nLookupsMutex;
+    boost::shared_mutex glbMutex;
 
     GlbContainer(std::string cname, int glbType) : nLookups(0), cname(cname), glbType(glbType) {
     }
@@ -59,6 +59,7 @@ public:
         boost::lock_guard<boost::mutex> lock(nLookupsMutex);
         return nLookups;
     }
+
     std::string to_string();
     std::string to_string(bool showIps);
 };

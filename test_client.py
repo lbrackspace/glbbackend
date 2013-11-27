@@ -12,6 +12,8 @@ def printf(format,*args): sys.stdout.write(format%args)
 
 def fprintf(fp,format,*args): fp.write(format%args)
 
+baseFQDN="rackexp.org"
+
 def intToIp(n):
     return "%i.%i.%i.%i"%(n>>24,(n>>16)&255,(n>>8)&255,n&255)
 
@@ -21,17 +23,23 @@ def usage(prog):
     printf("connects to server and sends data\n")
 
 def add_domain(fp,dn):
-    fp.write("ADD_DOMAIN glb_%i.rackexp.org NONE\n"%dn)
+    fp.write("ADD_DOMAIN glb_%i.%s NONE\n"%(dn,baseFQDN))
 
 def del_domain(fp,dn):
-    fp.write("DEL_DOMAIN glb_%i.rackexp.org\n"%dn)
+    fp.write("DEL_DOMAIN glb_%i.%s\n"%(dn,baseFQDN))
 
 def snapshot(fp,dn,nIps):
-    fp.write("SNAPSHOT glb_%i.rackexp.org"%dn)
+    fp.write("SNAPSHOT glb_%i.%s"%(dn,baseFQDN))
     for i in xrange(0,nIps):
        fp.write(" 4-30-%s-0"%intToIp(lo+i))
     fp.write("\n")
 
+def counts(fp,*dn):
+    if len(dn)==0:
+        fp.write("COUNTS\n")
+    else:
+        for i in dn:
+            fp.write("COUNTS glb_%i.%s"%(dn,baseFQDN))
 
 s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
@@ -47,5 +55,10 @@ for i in xrange(0,128000):
 
 nl = 0
 
-while(fp.readline() != "OVER\n"):
-    pass
+ln = 0
+while True:
+    line = fp.readline()
+    if line == "OVER\n":
+        break
+    ln += 1
+

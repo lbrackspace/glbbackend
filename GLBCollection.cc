@@ -16,19 +16,28 @@ void GLBCollection::add(std::string cname, boost::shared_ptr<GlbContainer>& glb)
         boost::lock_guard<boost::shared_mutex> mapLock(glbMapMutex);
         boost::unordered_map<std::string, boost::shared_ptr<GlbContainer> >::iterator it = glbMap.find(cname);
         if (it != glbMap.end()) {
-            throw GLBNotFoundException();
+            throw GLBExistsException();
         }
         glbMap[cname] = glb;
     } // releasing glbMapLock;
 }
 
-void GLBCollection::remove(std::string key) {
-    boost::lock_guard<boost::shared_mutex> lock(glbMapMutex);
-    glbMap.erase(key);
+void GLBCollection::remove(std::string cname) {
+    boost::lock_guard<boost::shared_mutex> mapLock(glbMapMutex);
+    boost::unordered_map<std::string, boost::shared_ptr<GlbContainer> >::iterator it = glbMap.find(cname);
+    if (it == glbMap.end()) {
+        throw GLBNotFoundException();
+    }
+    glbMap.erase(cname);
 }
 
-boost::shared_ptr<GlbContainer> GLBCollection::get(std::string key) {
-    return glbMap[key];
+boost::shared_ptr<GlbContainer> GLBCollection::get(std::string cname) {
+    boost::shared_lock<boost::shared_mutex> mapLock(glbMapMutex);
+    boost::unordered_map<std::string, boost::shared_ptr<GlbContainer> >::iterator it = glbMap.find(cname);
+    if (it == glbMap.end()) {
+        throw GLBNotFoundException();
+    }
+    return glbMap[cname];
 }
 
 int size() {

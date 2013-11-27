@@ -111,7 +111,7 @@ void snapshot_domain(std::vector<std::string> &outLines, std::string line) {
     {
         shared_lock<shared_mutex> lock(glbMapMutex);
         unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(cname);
-        if (it == glbMap.end()) {
+        if (glbMap.find(cname) == glbMap.end()) {
             outLines.push_back("SNAPSHOT FAILED: " + cname + " Not found");
             return;
         }
@@ -129,8 +129,7 @@ void del_domain(vector<string>& outLines, string line) {
         outLines.push_back("DEL_DOMAIN FAILED: Needed cname argument for command");
         return;
     }
-
-/*    {
+    {
         lock_guard<shared_mutex> lock(glbMapMutex);
         unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(cname);
         if (it == glbMap.end()) {
@@ -139,7 +138,7 @@ void del_domain(vector<string>& outLines, string line) {
         }
         glbMap.erase(cname);
         outLines.push_back("DEL_DOMAIN PASSED: " + cname);
-    }*/
+    }
 }
 
 void add_domain(vector<string>& outLines, string line) {
@@ -157,14 +156,43 @@ void add_domain(vector<string>& outLines, string line) {
         return;
     }
     shared_ptr<GlbContainer> glb(new GlbContainer(cname, glbType));
-
-    try {
-        glbCollection.add(cname, glb);
-    } catch (GLBExistsException& glbExistsException) {
-        outLines.push_back("ADD_DOMAIN FAILED: " + cname + " already exists can not add");
-        return;
+    {
+        lock_guard<shared_mutex> lock(glbMapMutex);
+        if (glbMap.find(cname) != glbMap.end()) {
+            outLines.push_back("ADD_DOMAIN FAILED: " + cname + " already exists can not add");
+            return;
+        }
+        glbMap[cname] = glb;
     }
     outLines.push_back("ADD_DOMAIN PASSED: " + cname);
+}
+
+void get_counts(std::vector<std::string>& outLines, std::string line) {
+    vector<string> args;
+    int nArgs = splitStr(args, line, " ");
+    if (nArgs > 1) {
+        int as = args.size();
+        for (int i = 1; i < as; i++) {
+            shared_lock<shared_mutex> lock(glbMapMutex);
+            string cname(args[i]);
+            unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(cname);
+            if (it == glbMap.end()) {
+                outLines.push_back("COUNT " + cname + " FAILED: cname doesn't exist");
+                continue;
+            }
+            ostringstream os;
+            os << "COUNT " + cname << " PASSED: " << (it->second)->getNLookups();
+            outLines.push_back(os.str());
+        }
+    } else {
+        shared_lock<shared_mutex> lock(glbMapMutex);
+        unordered_map<string, shared_ptr<GlbContainer> >::iterator it;
+        for (it = glbMap.begin(); it != glbMap.end(); it++) {
+            ostringstream os;
+            os << "COUNT " << it->first << " PASSED: " << (it->second)->getNLookups();
+            outLines.push_back(os.str());
+        }
+    }
 }
 
 void debug_domains(vector<string>& outLines, string line) {
@@ -174,7 +202,7 @@ void debug_domains(vector<string>& outLines, string line) {
         nLoops = std::atoi(args[1].c_str());
     }
     bool showFull = false;
-    if (args.size() >= 3 && args[2].compare("FULL")) {
+    if (args.size() >= 3 && args[2].compare("FULL") == 0) {
         showFull = true;
     }
     shared_lock<shared_mutex> lock(glbMapMutex);
@@ -228,6 +256,8 @@ int server(shared_ptr<ip::tcp::iostream> tstream) {
                         del_domain(outLines, inLines[i]);
                     } else if (cmdMatch(2, inCmdArgs, "SNAPSHOT")) {
                         snapshot_domain(outLines, inLines[i]);
+                    } else if (cmdMatch(1, inCmdArgs, "COUNTS")) {
+                        get_counts(outLines, inLines[i]);
                     } else {
                         unknown_command(outLines, inLines[i]);
                     }
