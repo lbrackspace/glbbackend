@@ -1,13 +1,24 @@
-
+#include<boost/asio.hpp>
+#include<boost/thread.hpp>
 #include "pdns/utility.hh"
 #include "pdns/dnsbackend.hh"
-#include "pdns/dns.hh"
-#include "pdns/dnsbackend.hh"
 #include "pdns/dnspacket.hh"
-#include "pdns/ahuexception.hh"
 #include "pdns/logger.hh"
-#include <boost/algorithm/string.hpp>
 #include "glbbackend.hh"
+#include "server.hh"
+
+GLBBackend::GLBBackend(const string & suffix) {
+  /*std::string ip_addr_str = "127.0.0.1";
+  int port = 8002;
+  boost::asio::io_service ios;
+  boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address::from_string(ip_addr_str), port);
+  boost::asio::ip::tcp::acceptor ac(ios, ep);
+
+  boost::shared_ptr<boost::asio::ip::tcp::iostream> stream(new boost::asio::ip::tcp::iostream());
+  ac.accept(*stream->rdbuf());
+  boost::thread th(bind(server, stream));
+  th.detach();*/
+}
 
 bool GLBBackend::list(const string &target, int id) {
   return false; // we don't support AXFR
@@ -15,6 +26,7 @@ bool GLBBackend::list(const string &target, int id) {
 
 void GLBBackend::lookup(const QType &type, const string &qdomain, DNSPacket *p, int zoneId)
 {
+    L << Logger::Debug << "lookup called on " << qdomain << " for type " << type.getName() << std::endl;
     ostringstream os;
     os<<Utility::random()%256<<"."<<Utility::random()%256<<"."<<Utility::random()%256<<"."<<Utility::random()%256;
     d_answer=os.str();                                           // our random ip address
@@ -57,7 +69,7 @@ public:
   {
     BackendMakers().report(new GLBFactory);
     
-    L<<Logger::Info<<" [GLBBackend] This is the glbbackend version " << GLB_VERSION << " ("__DATE__", "__TIME__") reporting" << endl;
+    L<<Logger::Warning<<" [GLBBackend] This is the glbbackend version " << GLB_VERSION << " ("__DATE__", "__TIME__") reporting" << endl;
   }  
 };
 
