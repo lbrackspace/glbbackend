@@ -17,6 +17,17 @@ baseFQDN="rackexp.org"
 def intToIp(n):
     return "%i.%i.%i.%i"%(n>>24,(n>>16)&255,(n>>8)&255,n&255)
 
+def drain(fp):
+    line_count = 0
+    while True:
+        line = fp.readline()
+        line_count += 1
+        if line == "OVER\n":
+            break
+    return line_count
+
+
+
 def usage(prog):
     printf("usage is %s <ip> <port> <startDomain> <ndomains> <nIps>\n",prog)
     printf("\n")
@@ -46,7 +57,7 @@ s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 s.connect(("127.0.0.1",8888))
 fp = s.makefile("rw")
 
-for i in xrange(0,128000):
+for i in xrange(0,128):
     add_domain(fp,i)
     snapshot(fp,i,25)
 

@@ -236,7 +236,10 @@ int server(shared_ptr<ip::tcp::iostream> tstream) {
         try {
             line.clear();
             getline(*tstream, line);
-
+            if (!(*tstream)) {
+                cout << " ERROR: " << (*tstream).error().message() << endl;
+                break;
+            }
             mainCmd.clear();
             splitStr(mainCmd, line, " ");
 
@@ -268,6 +271,11 @@ int server(shared_ptr<ip::tcp::iostream> tstream) {
                 startTime = clock();
                 outLines.push_back("OVER");
                 (*tstream) << joinStr(outLines, "\n") << endl;
+                if (!(*tstream)) {
+                    cout << " ERROR: " << (*tstream).error().message() << endl;
+                    break;
+                }
+
                 inLines.clear();
                 outLines.clear();
                 //clock_t endTime = clock();

@@ -23,7 +23,7 @@ int main_daemon(int argc, char **argv) {
     int port = std::atoi(argv[2]);
     start_server_thread(ip_addr, port);
     while (true) {
-        boost::this_thread::sleep( boost::posix_time::milliseconds(50) );
+        boost::this_thread::sleep( boost::posix_time::milliseconds(250) );
     }
 }
 
