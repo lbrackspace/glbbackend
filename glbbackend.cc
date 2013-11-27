@@ -64,6 +64,7 @@ bool GLBBackend::get(DNSResourceRecord &rr) {
         sendSOA = false; // So we don't get stuck in an endless loop.
         cout << "responding with SOA record" << endl;
         rr.qname = d_ourname;
+        rr.auth = 1;
         return true;
     }
     if (ips.size() > 0) {
