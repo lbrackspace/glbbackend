@@ -23,6 +23,7 @@ public:
     bool get(DNSResourceRecord &rr);
 
 private:
+    bool sendSOA;
     std::deque<IPRecord> ips;
     string d_answer;
     string d_ourname;

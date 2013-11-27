@@ -3,6 +3,7 @@
 
 #include<iostream>
 #include<boost/test/unit_test.hpp>
+#include<boost/algorithm/string.hpp>
 #include<string>
 #include<vector>
 
@@ -61,4 +62,9 @@ BOOST_AUTO_TEST_CASE(test_IP_to_string) {
 BOOST_AUTO_TEST_CASE(show_size_of_Glb) {
     std::cout << "sizeof(GlbContainer):: " << sizeof (GlbContainer) << std::endl;
     std::cout << "sizeof(IPRecord):      " << sizeof (IPRecord) << std::endl;
+}
+
+BOOST_AUTO_TEST_CASE(show_ends_with_works){
+    BOOST_CHECK(ends_with("glb_1.rackexp.org",".rackexp.org"));
+    BOOST_CHECK(!ends_with("www.google.com",".rackexp.org"));
 }
