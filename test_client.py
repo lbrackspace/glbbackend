@@ -19,12 +19,14 @@ def intToIp(n):
 
 def drain(fp):
     line_count = 0
+    byte_count = 0
     while True:
         line = fp.readline()
         line_count += 1
+        byte_count += len(line)
         if line == "OVER\n":
             break
-    return line_count
+    return (line_count,byte_count)
 
 
 
@@ -60,6 +62,12 @@ fp = s.makefile("rw")
 for i in xrange(0,128):
     add_domain(fp,i)
     snapshot(fp,i,25)
+
+fp.write("OVER\n")
+fp.flush()
+drain(fp)
+sys.exit()
+
 
 for i in xrange(0,128000):
     del_domain(fp,i)
