@@ -51,10 +51,11 @@ void start_server_thread(std::string ip_addr_str, int port) {
 
 int listener(string ip_addr_str, int port) {
     io_service ios;
-    cout << "Resolving ip Address " << ip_addr_str << "for port " << port << endl;
+    cout << "Resolving ip Address " << ip_addr_str << " for port " << port << endl;
     ip::tcp::endpoint ep(ip::address::from_string(ip_addr_str), port);
     cout << "Resolved endpoint to address: " << ep.address() << endl;
     cout << "Listening on addr: " << ep.address() << " port " << port << endl;
+    cout << "pdns pid: " << getpid() << endl;
     ip::tcp::acceptor ac(ios, ep);
 
     while (true) {
