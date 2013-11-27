@@ -8,16 +8,7 @@
 #include "server.hh"
 
 GLBBackend::GLBBackend(const string & suffix) {
-  /*std::string ip_addr_str = "127.0.0.1";
-  int port = 8002;
-  boost::asio::io_service ios;
-  boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address::from_string(ip_addr_str), port);
-  boost::asio::ip::tcp::acceptor ac(ios, ep);
-
-  boost::shared_ptr<boost::asio::ip::tcp::iostream> stream(new boost::asio::ip::tcp::iostream());
-  ac.accept(*stream->rdbuf());
-  boost::thread th(bind(server, stream));
-  th.detach();*/
+    // start_server_thread("127.0.0.1",8888);
 }
 
 bool GLBBackend::list(const string &target, int id) {
