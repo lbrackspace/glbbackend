@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export CF="-O2 -ggdb -I."
+export CF="-O0 -ggdb -I."
 
 rm *o
 rm server

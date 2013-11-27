@@ -1,14 +1,22 @@
 #include "GlbContainer.hh"
 #include "IPRecord.hh"
+#include "contrib/experiments/cpp/server_client/GlbContainer.hh"
 
 #include<boost/unordered_map.hpp>
 #include<boost/thread/locks.hpp>
 #include<boost/shared_ptr.hpp>
 #include<boost/thread.hpp>
+#include<boost/random/mersenne_twister.hpp>
+#include<boost/random/uniform_int.hpp>
+#include<boost/random/variate_generator.hpp>
 #include<vector>
 #include<string>
 
 static boost::unordered_map<std::string, int> strToGlbTypeMap;
+
+boost::mt19937 rng(static_cast<boost::uint32_t> (std::time(0)));
+boost::uniform_int<int> ud;
+boost::variate_generator<boost::mt19937&, boost::uniform_int<> > rn(rng, ud);
 
 boost::unordered_map<std::string, int> buildStrToGlbTypeMap() {
     boost::unordered_map<std::string, int> m;
@@ -86,6 +94,44 @@ void expandweights(std::vector<int> &expanded, std::vector<int>&weights) {
         }
     }
 }
+
+void GlbContainer::getIPs(std::deque<IPRecord>& dq, int ipType) {
+    incNLookups();
+    switch (glbType) {
+        case GlbType::NONE:
+            getIPSNoneAlgo(dq, ipType);
+            return;
+        case GlbType::RANDOM:
+            getIPSRandomAlgo(dq, ipType);
+    }
+}
+
+void GlbContainer::getIPSNoneAlgo(std::deque<IPRecord>& dq, int ipType) {
+    boost::shared_lock<boost::shared_mutex> lock(glbMutex);
+    int nRecords = ips.size();
+    for (int i = 0; i < nRecords; i++) {
+        if (ips[i]->getIPType() & ipType != 0) {
+            dq.push_back(*(ips[i])); // Copy the ip into the deque
+        }
+    }
+}
+
+void GlbContainer::getIPSRandomAlgo(std::deque<IPRecord>& dq, int ipType) {
+    boost::shared_lock<boost::shared_mutex> lock(glbMutex);
+    std::vector<int> ip_indexes;
+    int nRecords = ips.size();
+    for (int i = 0; i < nRecords; i++) {
+        if (ips[i]->getIPType() & ipType != 0) {
+            ip_indexes.push_back(i);
+        }
+    }
+    random_shuffle(ip_indexes.begin(), ip_indexes.end(), rn);
+    int nShuffled = ip_indexes.size();
+    for (int i = 0; i < nShuffled; i++) {
+        dq.push_back(*(ips[ip_indexes[i]]));
+    }
+}
+
 
 // Besure you don't have all vectors weighted at zero as this triggers division by zero
 

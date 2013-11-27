@@ -4,6 +4,7 @@
 #include<boost/unordered_map.hpp>
 #include<boost/thread/locks.hpp>
 #include<boost/thread.hpp>
+#include<deque>
 #include<string>
 #include<vector>
 #include"IPRecord.hh"
@@ -25,7 +26,8 @@ private:
     std::vector<int> weightsBoth;
     std::vector<int> weightsIpv4;
     std::vector<int> weightsIpv6;
-
+    void getIPSNoneAlgo(std::deque<IPRecord>& ipsOut, int ipType);
+    void getIPSRandomAlgo(std::deque<IPRecord>& dq, int ipType);
 public:
     boost::mutex nLookupsMutex;
     boost::shared_mutex glbMutex;
@@ -43,7 +45,7 @@ public:
 
     void setIPs(std::vector<IPRecord>& ips);
 
-    std::vector<IPRecord> getIPs(int ipType);
+    void getIPs(std::deque<IPRecord>& dq, int ipType); // The caller initializes the dq and passes by reference
 
     void clrNLookups() {
         boost::lock_guard<boost::mutex> lock(nLookupsMutex);
@@ -59,7 +61,6 @@ public:
         boost::lock_guard<boost::mutex> lock(nLookupsMutex);
         return nLookups;
     }
-
     std::string to_string();
     std::string to_string(bool showIps);
 };

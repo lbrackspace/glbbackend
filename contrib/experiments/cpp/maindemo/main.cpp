@@ -10,11 +10,15 @@
 #include<string>
 #include<string.h>
 #include<cstdlib>
+#include<ctime>
 #include<unistd.h>
 #include<deque>
 #include<boost/unordered_map.hpp>
 #include<boost/interprocess/mapped_region.hpp>
 #include<boost/algorithm/string.hpp>
+#include<boost/random/mersenne_twister.hpp>
+#include<boost/random/uniform_int.hpp>
+#include<boost/random/variate_generator.hpp>
 #include"DemoUtils.h"
 #include"ThreadManager.h"
 #include"Matrix.h"
@@ -26,6 +30,10 @@
 using namespace std;
 using namespace boost;
 using namespace boost::asio;
+
+boost::mt19937 rng(static_cast<boost::uint32_t> (std::time(0)));
+boost::uniform_int<int> ud;
+boost::variate_generator<boost::mt19937&, boost::uniform_int<> > rn(rng, ud);
 
 const int LINE_SIZE = 1024;
 Point getPoint(vector<string> args, int offset);
@@ -384,6 +392,19 @@ int main(int argc, char **argv) {
                 for (i = 0; i < splitSize; i++) {
                     cout << "splitStr[" << i << "]=\"" << splitStr[i] << "\"" << endl;
                 }
+            } else if (nArgs >= 2 && cmdArgs[0].compare("rndsh") == 0) {
+                vector<int> nums;
+                int nVals = std::atoi(cmdArgs[1].c_str());
+                for (i = 0; i < nVals; i++) {
+                    nums.push_back(i);
+                }
+
+                clock_t startTime = clock();
+                random_shuffle(nums.begin(), nums.end(), rn);
+                clock_t endTime = clock();
+                double secs = static_cast<double> (endTime - startTime) / CLOCKS_PER_SEC;
+                cout << "Took " << secs << " seconds to shuffle " << nVals << " elements: " << endl;
+                cout << "Vals = ";
             } else {
                 cout << "Unknown command" << cmd << endl;
                 cout << help() << endl;
@@ -461,6 +482,7 @@ string help() {
             << "bas <bitNum> <bitVal> #set the bitNumber to the bitval" << endl
             << "bag <bitNum> #Read the bit at the specified address" << endl
             << "splitstr <str> #split str into string vector" << endl
+            << "rndsh <nArgs> #Randomly shuffle the values" << endl
             << "exit #Exit program" << endl;
 
     return os.str();
@@ -493,10 +515,12 @@ string showsizeof() {
             << "sizeof(ring_buffer):         " << setw(4) << sizeof (ring_buffer) << endl
             << "sizeof(boost::ip::tcp::resolver " << setw(4) << sizeof (boost::asio::ip::tcp::resolver) << endl
             << "sizeof(boost::ip::tcp::resolver::iterator) " << setw(4) << sizeof (boost::asio::ip::tcp::resolver::iterator) << endl
-            << "sizeof(boost::condition_variable) " << setw(4) << sizeof(boost::condition_variable) << endl
+            << "sizeof(boost::condition_variable) " << setw(4) << sizeof (boost::condition_variable) << endl
             << endl
             << "boost::thread::hardware_concurrency(): " << setw(4) << boost::thread::hardware_concurrency() << endl
-            << "mapped_region::get_page_size():        " << setw(4) << boost::interprocess::mapped_region::get_page_size() << endl;
+            << "mapped_region::get_page_size():        " << setw(4) << boost::interprocess::mapped_region::get_page_size() << endl
+            << "time: " << std::time(0) << endl;
+
 
     return os.str();
 }
