@@ -11,6 +11,7 @@
 #include<string.h>
 #include<cstdlib>
 #include<ctime>
+#include<time.h>
 #include<unistd.h>
 #include<deque>
 #include<boost/unordered_map.hpp>
@@ -45,6 +46,34 @@ std::string address_to_string(boost::asio::ip::address& addr);
 boost::shared_ptr<boost::asio::ip::tcp::resolver::iterator> resolveTCP(std::string& host, std::string& service, boost::asio::io_service& ios, boost::system::error_code& ec);
 int gcdreduce(vector<int> &reduced_weights, vector<int> &weights, int& itercount);
 
+double gettimevalue() {
+    double out;
+    struct timeval tv;
+    if (gettimeofday(&tv, NULL) == -1) {
+        return NAN;
+    }
+    out = (double) tv.tv_sec + (double) tv.tv_usec * 0.000001;
+    return out;
+}
+
+class MyTimer {
+private:
+    double baseTime;
+public:
+
+    MyTimer() {
+        baseTime = gettimevalue();
+    }
+
+    void reset() {
+        baseTime = gettimevalue();
+    }
+
+    double read() {
+        return gettimevalue() - baseTime;
+    }
+};
+
 int main(int argc, char **argv) {
     char *cmd = new char[LINE_SIZE + 1];
     int nArgs = 0;
@@ -53,6 +82,7 @@ int main(int argc, char **argv) {
     Point p1;
     Point p2;
     Point sum;
+    MyTimer tmr;
     io_service ios;
     ring_buffer rb(0);
     deque<string> dq;
@@ -405,6 +435,16 @@ int main(int argc, char **argv) {
                 double secs = static_cast<double> (endTime - startTime) / CLOCKS_PER_SEC;
                 cout << "Took " << secs << " seconds to shuffle " << nVals << " elements: " << endl;
                 cout << "Vals = ";
+            } else if (nArgs >= 1 && cmdArgs[0].compare("resettime") == 0) {
+                tmr.reset();
+                cout << "Reset timer" << endl;
+            } else if (nArgs >= 1 && cmdArgs[0].compare("readtime") == 0) {
+                cout << "Timer reads " << tmr.read() << endl;
+                clock_t startTime = clock();
+                for (int i = 0; i < 2000000000; i++);
+                clock_t endTime = clock();
+                double secs = static_cast<double> (endTime - startTime) / CLOCKS_PER_SEC;
+                cout << "Took " << secs << " seconds to shuffle " << endl;
             } else {
                 cout << "Unknown command" << cmd << endl;
                 cout << help() << endl;
@@ -483,6 +523,8 @@ string help() {
             << "bag <bitNum> #Read the bit at the specified address" << endl
             << "splitstr <str> #split str into string vector" << endl
             << "rndsh <nArgs> #Randomly shuffle the values" << endl
+            << "readtime #Read the timer" << endl
+            << "resettime #Reset the timer" << endl
             << "exit #Exit program" << endl;
 
     return os.str();
@@ -516,6 +558,7 @@ string showsizeof() {
             << "sizeof(boost::ip::tcp::resolver " << setw(4) << sizeof (boost::asio::ip::tcp::resolver) << endl
             << "sizeof(boost::ip::tcp::resolver::iterator) " << setw(4) << sizeof (boost::asio::ip::tcp::resolver::iterator) << endl
             << "sizeof(boost::condition_variable) " << setw(4) << sizeof (boost::condition_variable) << endl
+            << "sizeof(MyTimer)                   " << setw(4) << sizeof (MyTimer) << endl
             << endl
             << "boost::thread::hardware_concurrency(): " << setw(4) << boost::thread::hardware_concurrency() << endl
             << "mapped_region::get_page_size():        " << setw(4) << boost::interprocess::mapped_region::get_page_size() << endl
