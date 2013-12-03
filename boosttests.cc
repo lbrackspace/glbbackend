@@ -6,6 +6,7 @@
 #include<deque>
 #include<vector>
 #include<boost/test/unit_test.hpp>
+#include<boost/shared_ptr.hpp>
 #include<string>
 #include<vector>
 #include<ctime>
@@ -13,6 +14,7 @@
 #include <unistd.h>
 #include"GlbContainer.hh"
 #include"IPRecord.hh"
+#include"SOAContainer.hh"
 
 using namespace boost;
 using namespace std;
@@ -99,10 +101,12 @@ BOOST_AUTO_TEST_CASE(test_IP_to_string) {
 BOOST_AUTO_TEST_CASE(show_size_of_Glb) {
     std::cout << "sizeof(GlbContainer):: " << sizeof (GlbContainer) << std::endl;
     std::cout << "sizeof(IPRecord):      " << sizeof (IPRecord) << std::endl;
+    std::cout << "sizeof(SOAContainer):  " << sizeof (SOAContainer) << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(time_tests) {
     int n = 10000000;
+    return; // not running these time consuming tests.
     MyTimer tmr;
     tmr.reset();
     vector<string> vc;
@@ -170,4 +174,28 @@ BOOST_AUTO_TEST_CASE(time_tests) {
         dq.pop_front();
     }
     cout << tmr.read() << " to pop " << n << " IPRECORDS off the deque" << endl;
+}
+
+BOOST_AUTO_TEST_CASE(test_soa) {
+    string expSOA("ns1.rackexp.org. root.rackexp.org. 2013102907 28800 14400 3600000 300");
+    string expBaseFQDN(".rackspace.org");
+    setSOA(expSOA, expBaseFQDN);
+    shared_ptr<SOAContainer> soa = getSOA();
+    BOOST_CHECK(soa->getSOARecord().compare(expSOA) == 0);
+    BOOST_CHECK(soa->getBaseFQDN().compare(expBaseFQDN) == 0);
+}
+
+BOOST_AUTO_TEST_CASE(test_nsRecords) {
+    shared_ptr<vector<string> > oldRecords = getNSRecords();
+    BOOST_CHECK(oldRecords->size()==0); // No records yet
+    vector<string> records;
+    records.push_back("ns1.rackexp.org");
+    records.push_back("ns2.rackexp.org");
+    setNSRecords(records);
+    shared_ptr<vector<string> > newRecords = getNSRecords();
+    // Verify that setNSRecords didn't clober oldRecords as some threads might
+    // still be in the middle of serving up old records
+    BOOST_CHECK(oldRecords->size()==0);
+    // Like wise verify that new threads did get the new 2 NS records
+    BOOST_CHECK(newRecords);
 }

@@ -16,6 +16,7 @@
 #include"GlbContainer.hh"
 #include"IPRecord.hh"
 #include"GLBCollection.hh"
+#include"SOAContainer.hh"
 
 using namespace std;
 using namespace boost;
@@ -68,10 +69,41 @@ int listener(string ip_addr_str, int port) {
     return 0;
 }
 
+bool decodeIP(const string inputStr, string &errorMsg, int &ipt, int &ttl, string &addr, string &attr) {
+    vector<string> ipVec;
+    int nItems = splitStr(ipVec, inputStr, "-");
+    if (nItems < 4) {
+        errorMsg = string(":epected4Vals");
+        return false;
+    }
+    ipt = std::atoi(ipVec[0].c_str());
+    ttl = std::atoi(ipVec[1].c_str());
+    addr = ipVec[2];
+    attr = ipVec[3];
+    if (ttl <= 0) {
+        errorMsg = ":ttl_less_than_0";
+        return false;
+    }
+    if (ipt == 4) {
+        ipt = IPRecordType::IPv4;
+    } else if (ipt == 6) {
+        ipt = IPRecordType::IPv6;
+    } else {
+        errorMsg = ":Unknown_ipType";
+        return false;
+    }
+    return true;
+}
+
 void snapshot_domain(std::vector<std::string> &outLines, std::string line) {
     vector<string> inArgs;
     vector<string>ipVec;
     vector<IPRecord> ips;
+    int ipTTL;
+    int ipType;
+    string ipAddr;
+    string ipAttr;
+    string errorMsg;
     int nArgs = splitStr(inArgs, line, " ");
     if (nArgs < 2) {
         outLines.push_back("SNAPSHOT FAILED: cname required");
@@ -81,30 +113,12 @@ void snapshot_domain(std::vector<std::string> &outLines, std::string line) {
     string cname = inArgs[1];
     int li = inArgs.size();
     for (int i = 2; i < li; i++) {
-        ipVec.clear();
         string curr_ip(inArgs[i]);
-        if (splitStr(ipVec, curr_ip, "-") < 4) {
-            os << " r" << curr_ip << ":epected4Vals";
+        if (!decodeIP(curr_ip, errorMsg, ipType, ipTTL, ipAddr, ipAttr)) {
+            os << " r" << curr_ip << errorMsg;
             continue;
         }
-        int ipType = std::atoi(ipVec[0].c_str());
-        int ttl = std::atoi(ipVec[1].c_str());
-        int ipt;
-        string ip(ipVec[2]);
-        string attr(ipVec[3]);
-        if (ttl <= 0) {
-            os << " r" << curr_ip << ":ttl_less_than_0";
-            continue;
-        }
-        if (ipType == 4) {
-            ipt = IPRecordType::IPv4;
-        } else if (ipType == 6) {
-            ipt = IPRecordType::IPv6;
-        } else {
-            os << " r" << curr_ip << ":Unknown_ipType";
-            continue;
-        }
-        ips.push_back(IPRecord(ipt, ip, ttl));
+        ips.push_back(IPRecord(ipType, ipAddr, ipTTL));
         os << " a" << curr_ip;
     }
     // Find the glb from the map

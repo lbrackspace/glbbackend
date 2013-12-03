@@ -59,9 +59,14 @@ s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 s.connect(("127.0.0.1",8888))
 fp = s.makefile("rw")
 
-for i in xrange(0,128):
+for i in xrange(0,4):
     add_domain(fp,i)
     snapshot(fp,i,25)
+
+for i in xrange(1,4):
+    fp.write("ADD_DOMAIN ns%i.rackexp.org NONE\n"%i);
+    fp.write("SNAPSHOT ns%i.rackexp.org 4-30-127.0.0.1-1\n"%i)
+
 
 fp.write("OVER\n")
 fp.flush()
@@ -69,7 +74,7 @@ drain(fp)
 sys.exit()
 
 
-for i in xrange(0,128):
+for i in xrange(0,4):
     del_domain(fp,i)
 
 nl = 0
