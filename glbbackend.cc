@@ -20,7 +20,6 @@ bool GLBBackend::list(const string &target, int id) {
 void GLBBackend::lookup(const QType &type, const string &qdomain, DNSPacket *p, int zoneId) {
     // See if the domain even exists
     ips.clear(); // Initialize the list as empty
-    cout << "Looking up domain: " << qdomain << " qtype: " << type.getName() << endl;
     d_ourname = qdomain;
     shared_ptr<GlbContainer> glb;
     {
@@ -28,7 +27,6 @@ void GLBBackend::lookup(const QType &type, const string &qdomain, DNSPacket *p, 
         boost::unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(boost::algorithm::to_lower_copy(qdomain));
 
         if (type == QType::SOA && boost::algorithm::ends_with(boost::algorithm::to_lower_copy(qdomain), ".rackexp.org")) {
-            cout << "scheduling send of SOA" << endl;
             sendSOA = true;
             return;
         } else {
@@ -36,7 +34,6 @@ void GLBBackend::lookup(const QType &type, const string &qdomain, DNSPacket *p, 
         }
 
         if (it == glbMap.end()) {
-            cout << qdomain << " not found" << endl;
             return;
         }
         glb = it->second;
@@ -52,17 +49,13 @@ void GLBBackend::lookup(const QType &type, const string &qdomain, DNSPacket *p, 
         return; // leave the list empty Its not an A record or a AAAA record. :|
     }
     (*glb).getIPs(ips, ipType); // getIPs will populate the ips deque
-    int is = ips.size();
-    cout << "Lookedup " << is << " records" << endl;
 }
 
 bool GLBBackend::get(DNSResourceRecord &rr) {
-    cout << "get(rr) recieved qtype=\"" << rr.qtype.getName() << "\" qname=\" " << rr.qname << "\" " << endl;
     if (sendSOA) {
         rr.content = "ns1.rackexp.org. root.rackexp.org. 2013102907 28800 14400 3600000 300";
         rr.ttl = 60;
         sendSOA = false; // So we don't get stuck in an endless loop.
-        cout << "responding with SOA record" << endl;
         rr.qname = d_ourname;
         rr.auth = 1;
         return true;

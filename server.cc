@@ -80,7 +80,7 @@ void snapshot_domain(std::vector<std::string> &outLines, std::string line) {
     ostringstream os;
     string cname = inArgs[1];
     int li = inArgs.size();
-    for (int i = 2; i < li - 1; i++) {
+    for (int i = 2; i < li; i++) {
         ipVec.clear();
         string curr_ip(inArgs[i]);
         if (splitStr(ipVec, curr_ip, "-") < 4) {
