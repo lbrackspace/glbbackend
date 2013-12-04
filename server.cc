@@ -45,6 +45,15 @@ string joinStr(const vector<string>& strIn, string delim) {
     return boost::algorithm::join(strIn, delim);
 }
 
+string joinStr(const vector<string> &strIn, string delim, int start_i) {
+    vector<string> strVec;
+    int ss = strIn.size();
+    for (int i = start_i; i < ss; i++) {
+        strVec.push_back(strIn[i]);
+    }
+    return joinStr(strVec, " ");
+}
+
 void start_server_thread(std::string ip_addr_str, int port) {
     boost::thread th(bind(listener, ip_addr_str, port));
     th.detach();
@@ -111,8 +120,8 @@ void snapshot_domain(std::vector<std::string> &outLines, std::string line) {
     }
     ostringstream os;
     string cname = inArgs[1];
-    int li = inArgs.size();
-    for (int i = 2; i < li; i++) {
+    int as = inArgs.size();
+    for (int i = 2; i < as; i++) {
         string curr_ip(inArgs[i]);
         if (!decodeIP(curr_ip, errorMsg, ipType, ipTTL, ipAddr, ipAttr)) {
             os << " r" << curr_ip << errorMsg;
@@ -180,6 +189,40 @@ void add_domain(vector<string>& outLines, string line) {
         glbMap[cname] = glb;
     }
     outLines.push_back("ADD_DOMAIN PASSED: " + cname);
+}
+
+void set_soa(std::vector<std::string> &outLines, std::string line) {
+    vector<string> args;
+    int nArgs = splitStr(args, line, " ");
+    if (nArgs < 3) {
+        ostringstream os;
+        os << "SET_SOA FAILED: expected atleast 3 arguments but found only " << nArgs;
+        outLines.push_back(os.str());
+        return;
+    }
+    string baseFQDNValue = args[1];
+    string soaValue = joinStr(args, " ", 2);
+    setGlobalSOARecord(soaValue, baseFQDNValue);
+    outLines.push_back("SET_SOA PASSED:");
+    return;
+}
+
+void set_ns(std::vector<std::string> &outLines, std::string line) {
+    vector<string> args;
+    int nArgs = splitStr(args, line, " ");
+    if (nArgs < 2) {
+        ostringstream os;
+        os << "SET_NS FAILED: expected atleast 2 parameters only got " << nArgs;
+        outLines.push_back(os.str());
+        return;
+    }
+    vector<string> newRecords;
+    for (int i = 1; i < nArgs; i++) {
+        newRecords.push_back(args[i]);
+    }
+    setNSRecords(newRecords);
+    outLines.push_back("SET_NS PASSED:");
+    return;
 }
 
 void clr_counts(std::vector<std::string>& outLines, std::string line) {
@@ -296,6 +339,10 @@ int server(shared_ptr<ip::tcp::iostream> tstream) {
                         get_counts(outLines, inLines[i]);
                     } else if (cmdMatch(1, inCmdArgs, "CLR_COUNTS")) {
                         clr_counts(outLines, inLines[i]);
+                    } else if (cmdMatch(3, inCmdArgs, "SET_SOA")) {
+                        set_soa(outLines, inLines[i]);
+                    } else if (cmdMatch(2, inCmdArgs, "SET_NS")) {
+                        set_ns(outLines, inLines[i]);
                     } else {
                         unknown_command(outLines, inLines[i]);
                     }

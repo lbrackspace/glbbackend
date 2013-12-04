@@ -179,15 +179,15 @@ BOOST_AUTO_TEST_CASE(time_tests) {
 BOOST_AUTO_TEST_CASE(test_soa) {
     string expSOA("ns1.rackexp.org. root.rackexp.org. 2013102907 28800 14400 3600000 300");
     string expBaseFQDN(".rackspace.org");
-    setSOA(expSOA, expBaseFQDN);
-    shared_ptr<SOAContainer> soa = getSOA();
+    setGlobalSOARecord(expSOA, expBaseFQDN);
+    shared_ptr<SOAContainer> soa = getGlobalSOARecord();
     BOOST_CHECK(soa->getSOARecord().compare(expSOA) == 0);
     BOOST_CHECK(soa->getBaseFQDN().compare(expBaseFQDN) == 0);
 }
 
 BOOST_AUTO_TEST_CASE(test_nsRecords) {
     shared_ptr<vector<string> > oldRecords = getNSRecords();
-    BOOST_CHECK(oldRecords->size()==0); // No records yet
+    BOOST_CHECK(oldRecords->size() == 0); // No records yet
     vector<string> records;
     records.push_back("ns1.rackexp.org");
     records.push_back("ns2.rackexp.org");
@@ -195,7 +195,7 @@ BOOST_AUTO_TEST_CASE(test_nsRecords) {
     shared_ptr<vector<string> > newRecords = getNSRecords();
     // Verify that setNSRecords didn't clober oldRecords as some threads might
     // still be in the middle of serving up old records
-    BOOST_CHECK(oldRecords->size()==0);
+    BOOST_CHECK(oldRecords->size() == 0);
     // Like wise verify that new threads did get the new 2 NS records
     BOOST_CHECK(newRecords);
 }

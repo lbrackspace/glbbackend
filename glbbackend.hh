@@ -24,9 +24,13 @@ public:
 
 private:
     bool sendSOA;
+    bool sendNS;
     std::deque<IPRecord> ips;
+    boost::shared_ptr<std::vector<std::string> > nsRecords;
+    std::vector<std::string>::iterator nsIterator;
     string d_answer;
     string d_ourname;
+    string soaRecord;
 };
 
 

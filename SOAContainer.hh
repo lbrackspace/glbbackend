@@ -36,10 +36,9 @@ public:
 
 extern boost::shared_ptr<SOAContainer> globalSOA;
 extern boost::shared_mutex soaMutex;
-extern boost::shared_ptr< std::vector< std::string > > nsRecords;
-void setSOA(const std::string &soaValue, const std::string &baseFQDNValue);
-boost::shared_ptr<SOAContainer> getSOA();
-
+extern boost::shared_ptr< std::vector< std::string > > globalNsRecords;
+void setGlobalSOARecord(const std::string &soaValue, const std::string &baseFQDNValue);
+boost::shared_ptr<SOAContainer> getGlobalSOARecord();
 void setNSRecords(std::vector< std::string> recs);
 boost::shared_ptr< std::vector< std::string> > getNSRecords();
 

@@ -3,14 +3,19 @@
 #include<boost/unordered_map.hpp>
 #include<boost/thread/locks.hpp>
 #include<boost/shared_ptr.hpp>
+#include<iterator>
+#include<vector>
 #include "pdns/utility.hh"
 #include "pdns/dnsbackend.hh"
 #include "pdns/dnspacket.hh"
 #include "pdns/logger.hh"
 #include "glbbackend.hh"
+#include "SOAContainer.hh"
 #include "server.hh"
 
 GLBBackend::GLBBackend(const string & suffix) {
+	sendSOA = false;
+	sendNS = false;
 }
 
 bool GLBBackend::list(const string &target, int id) {
@@ -21,23 +26,39 @@ void GLBBackend::lookup(const QType &type, const string &qdomain, DNSPacket *p, 
     // See if the domain even exists
     ips.clear(); // Initialize the list as empty
     d_ourname = qdomain;
+    sendSOA = false;
+    sendNS = false;
+
+    string domainLowerCase(boost::algorithm::to_lower_copy(qdomain));
+    string baseFQDN;
     shared_ptr<GlbContainer> glb;
     {
         boost::shared_lock<boost::shared_mutex > (glbMapMutex);
-        boost::unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(boost::algorithm::to_lower_copy(qdomain));
+        boost::unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(domainLowerCase);
 
-        if (type == QType::SOA && boost::algorithm::ends_with(boost::algorithm::to_lower_copy(qdomain), ".rackexp.org")) {
-            sendSOA = true;
-            return;
-        } else {
-            sendSOA = false;
-        }
 
         if (it == glbMap.end()) {
             return;
         }
         glb = it->second;
     }
+    if (type == QType::SOA || type == QType::ANY || type == QType::NS) {
+        shared_ptr<SOAContainer> localSOA = getGlobalSOARecord();
+        baseFQDN = localSOA->getBaseFQDN();
+        if (boost::algorithm::ends_with(domainLowerCase, baseFQDN)) {
+            soaRecord = localSOA->getSOARecord();
+        }
+
+    }
+    if (type == QType::SOA) {
+        sendSOA = true;
+    }
+    if ((type == QType::NS || type == QType::ANY) && boost::algorithm::ends_with(domainLowerCase, baseFQDN)) {
+        nsRecords = getNSRecords();
+        nsIterator = nsRecords->begin();
+        sendNS = true;
+    }
+
     int ipType;
     if (type == QType::A) {
         ipType = IPRecordType::IPv4;
@@ -46,6 +67,7 @@ void GLBBackend::lookup(const QType &type, const string &qdomain, DNSPacket *p, 
     } else if (type == QType::ANY) {
         ipType = IPRecordType::IPv4 | IPRecordType::IPv6;
     } else {
+
         return; // leave the list empty Its not an A record or a AAAA record. :|
     }
     (*glb).getIPs(ips, ipType); // getIPs will populate the ips deque
@@ -53,12 +75,24 @@ void GLBBackend::lookup(const QType &type, const string &qdomain, DNSPacket *p, 
 
 bool GLBBackend::get(DNSResourceRecord &rr) {
     if (sendSOA) {
-        rr.content = "ns1.rackexp.org. root.rackexp.org. 2013102907 28800 14400 3600000 300";
+        rr.content = soaRecord;
         rr.ttl = 60;
         sendSOA = false; // So we don't get stuck in an endless loop.
         rr.qname = d_ourname;
         rr.auth = 1;
         return true;
+    }
+    if (sendNS) {
+        if (nsIterator == nsRecords->end()) {
+            sendNS = false;
+        } else {
+            rr.content = *nsIterator;
+            rr.ttl = 60;
+            rr.qname = d_ourname;
+            rr.auth = 1;
+            nsIterator++;
+            return true;
+        }
     }
     if (ips.size() > 0) {
         IPRecord ipr = *(ips.begin());
@@ -76,6 +110,7 @@ bool GLBBackend::get(DNSResourceRecord &rr) {
         rr.qname = d_ourname;
         // Pop the first record off the queue
         ips.pop_front();
+
         return true;
     }
     return false; // no more data
@@ -88,10 +123,12 @@ public:
     }
 
     void declareArguments(const string &suffix = "") {
+
         declare(suffix, "darkside", "Something something something darkside.", "vader");
     }
 
     DNSBackend *make(const string &suffix = "") {
+
         return new GLBBackend(suffix);
     }
 };
