@@ -57,7 +57,7 @@ def snapshot(fp,dn,nIps):
     fp.write("SNAPSHOT glb_%i.%s"%(dn,baseFQDN))
     for i in xrange(0,nIps):
        fp.write(" 4-30-%s-1"%intToIp(lo + i))
-       fp.write(" 6-30-%s-1"%intToIp6(lo + i))
+       fp.write(" 6-30-%s-1"%intToIp6(lo6 + i))
     fp.write("\n")
 
 def counts(fp,*dn):
@@ -72,18 +72,23 @@ s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 s.connect(("127.0.0.1",8888))
 fp = s.makefile("rw")
 
-for i in xrange(0,4):
+for i in xrange(0,2):
     add_domain(fp,i)
-    snapshot(fp,i,25)
+    snapshot(fp,i,2)
 
 for i in xrange(1,4):
     fp.write("ADD_DOMAIN ns%i.rackexp.org NONE\n"%i);
-    fp.write("SNAPSHOT ns%i.rackexp.org 4-30-127.0.0.1-1\n"%i)
+    fp.write("SNAPSHOT ns%i.rackexp.org 4-30-127.0.0.1-1"%i)
+    fp.write(" 6-30-%s-1\n"%intToIp6(lo6+i))
 
 soa="ns1.rackexp.org. root.rackexp.org. 2013102907 28800 14400 3600000 300"
 baseFqdn="rackexp.org"
 fp.write("SET_SOA %s %s\n"%(baseFQDN,soa))
-fp.write("OVER\n")
+fp.write("SET_NS")
+for i in xrange(1,4):
+    fp.write(" ns%i.rackexp.org"%i)
+
+fp.write("\nOVER\n")
 fp.flush()
 drain(fp)
 sys.exit()

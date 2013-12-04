@@ -6,6 +6,8 @@
 #include<iterator>
 #include<vector>
 #include<iostream>
+#include<sstream>
+#include<ostream>
 #include "pdns/utility.hh"
 #include "pdns/dnsbackend.hh"
 #include "pdns/dnspacket.hh"
@@ -14,13 +16,31 @@
 #include "SOAContainer.hh"
 #include "server.hh"
 
+const bool DEBUG = false;
+
 GLBBackend::GLBBackend(const string & suffix) {
     sendSOA = false;
     sendNS = false;
+    if (DEBUG) {
+        cout << "new Thread" << endl;
+    }
 }
 
 bool GLBBackend::list(const string &target, int id) {
     return false; // we don't support AXFR
+}
+
+std::string debugRR(const DNSResourceRecord &rr) {
+    std::ostringstream os;
+    os << "rr { content="
+            << rr.content
+            << " ttl=" << rr.ttl
+            << " type=" << rr.qtype.getName()
+            << " qname=" << rr.qname
+            << " auth=" << std::boolalpha << rr.auth
+            << " domain_id=" << rr.domain_id
+            << " }";
+    return os.str();
 }
 
 void GLBBackend::lookup(const QType &type, const string &qdomain, DNSPacket *p, int zoneId) {
@@ -29,10 +49,42 @@ void GLBBackend::lookup(const QType &type, const string &qdomain, DNSPacket *p, 
     d_ourname = qdomain;
     sendSOA = false;
     sendNS = false;
-    cout << "qType(" << type.getCode() << ")=" << type.getName() << " domain=" << qdomain << endl;
+    if (DEBUG) {
+        cout << "qType(" << type.getCode() << ")=" << type.getName() << " domain=" << qdomain << endl;
+    }
     string domainLowerCase(boost::algorithm::to_lower_copy(qdomain));
-    string baseFQDN;
+    baseDomain = "";
     shared_ptr<GlbContainer> glb;
+    if (type == QType::SOA || type == QType::ANY || type == QType::NS) {
+        shared_ptr<SOAContainer> localSOA = getGlobalSOARecord();
+        baseDomain = localSOA->getBaseFQDN();
+        if (matchesBaseFqdn(domainLowerCase, baseDomain)) {
+            soaRecord = localSOA->getSOARecord();
+            if (DEBUG) {
+                cout << "setting soaRecord = " << baseDomain << ":" << soaRecord << endl;
+            }
+        }
+
+    }
+
+    if (type == QType::SOA) {
+        sendSOA = true;
+    }
+    if ((type == QType::NS || type == QType::ANY) && matchesBaseFqdn(domainLowerCase, baseDomain)) {
+        if (DEBUG) {
+            cout << "Adding NS records" << endl;
+        }
+        nsRecords = getNSRecords();
+        int nns = nsRecords->size();
+        if (DEBUG) {
+            for (int i = 0; i < nns; i++) {
+                cout << "ns: " << (*nsRecords)[i] << endl;
+            }
+        }
+        nsIterator = nsRecords->begin();
+        sendNS = true;
+    }
+    // Lock the glbMap and search for the domain
     {
         boost::shared_lock<boost::shared_mutex > (glbMapMutex);
         boost::unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(domainLowerCase);
@@ -43,22 +95,6 @@ void GLBBackend::lookup(const QType &type, const string &qdomain, DNSPacket *p, 
         }
         glb = it->second;
     }
-    if (type == QType::SOA || type == QType::ANY || type == QType::NS) {
-        shared_ptr<SOAContainer> localSOA = getGlobalSOARecord();
-        baseFQDN = localSOA->getBaseFQDN();
-        if (matchesBaseFqdn(domainLowerCase, baseFQDN)) {
-            soaRecord = localSOA->getSOARecord();
-        }
-
-    }
-    if (type == QType::SOA) {
-        sendSOA = true;
-    }
-    if ((type == QType::NS || type == QType::ANY) && matchesBaseFqdn(domainLowerCase, baseFQDN)) {
-        nsRecords = getNSRecords();
-        nsIterator = nsRecords->begin();
-        sendNS = true;
-    }
 
     int ipType;
     if (type == QType::A) {
@@ -68,31 +104,46 @@ void GLBBackend::lookup(const QType &type, const string &qdomain, DNSPacket *p, 
     } else if (type == QType::ANY) {
         ipType = IPRecordType::IPv4 | IPRecordType::IPv6;
     } else {
-
         return; // leave the list empty Its not an A record or a AAAA record. :|
     }
-    cout << "ipType=" << ipType << endl;
-    (*glb).getIPs(ips, ipType); // getIPs will populate the ips deque
+    if (DEBUG) {
+        cout << "ipType=" << ipType << endl;
+    }
+    glb->getIPs(ips, ipType); // getIPs will populate the ips deque
 }
 
 bool GLBBackend::get(DNSResourceRecord &rr) {
     if (sendSOA) {
         rr.content = soaRecord;
         rr.ttl = 60;
+        rr.qname = baseDomain;
+        rr.qtype = QType::SOA;
+        rr.auth = true;
+        rr.domain_id = 1;
+        if (DEBUG) {
+            cout << debugRR(rr) << endl;
+        }
         sendSOA = false; // So we don't get stuck in an endless loop.
-        rr.qname = d_ourname;
-        rr.auth = 1;
         return true;
     }
     if (sendNS) {
+        if (DEBUG) {
+            cout << "sendNS triggered" << endl;
+            cout << "nsRecordsSize = " << nsRecords->size() << endl;
+        }
         if (nsIterator == nsRecords->end()) {
             sendNS = false;
         } else {
             rr.content = *nsIterator;
             rr.ttl = 60;
-            rr.qname = d_ourname;
-            rr.auth = 1;
+            rr.qname = string("ns1." + baseDomain);
+            rr.auth = true;
+            rr.qtype = QType::NS;
+            rr.domain_id = 1;
             nsIterator++;
+            if (DEBUG) {
+                cout << debugRR(rr) << endl;
+            }
             return true;
         }
     }
@@ -107,12 +158,15 @@ bool GLBBackend::get(DNSResourceRecord &rr) {
                 break;
         }
         rr.ttl = ipr.getTtl();
-        rr.auth = 1;
+        rr.auth = true;
         rr.content = ipr.getIPAddress();
         rr.qname = d_ourname;
         // Pop the first record off the queue
         ips.pop_front();
-
+        rr.domain_id = 1;
+        if (DEBUG) {
+            cout << debugRR(rr) << endl;
+        }
         return true;
     }
     return false; // no more data

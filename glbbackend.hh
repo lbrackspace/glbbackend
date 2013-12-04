@@ -28,11 +28,12 @@ private:
     std::deque<IPRecord> ips;
     boost::shared_ptr<std::vector<std::string> > nsRecords;
     std::vector<std::string>::iterator nsIterator;
-    string d_answer;
-    string d_ourname;
-    string soaRecord;
+    std::string d_answer;
+    std::string d_ourname;
+    std::string soaRecord;
+    std::string baseDomain;
 };
 
-
+std::string debugRR(const DNSResourceRecord &rr);
 
 #endif /* GLBBACKEND_HH_ */

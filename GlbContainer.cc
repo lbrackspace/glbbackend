@@ -112,7 +112,6 @@ void GlbContainer::getIPSNoneAlgo(std::deque<IPRecord>& dq, int ipType) {
     boost::shared_lock<boost::shared_mutex> lock(glbMutex);
     int nRecords = ips.size();
     for (int i = 0; i < nRecords; i++) {
-        //std::cout << ips[i]->getIPAddress() << " " << ips[i]->getIPType() << "&" << ipType << "=" << (ips[i]->getIPType() & ipType) << std::endl;
         if (((ips[i]->getIPType()) & ipType) > 0) {
             dq.push_back(*(ips[i])); // Copy the ip into the deque
         }

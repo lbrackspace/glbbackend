@@ -221,7 +221,7 @@ void set_ns(std::vector<std::string> &outLines, std::string line) {
         newRecords.push_back(args[i]);
     }
     setNSRecords(newRecords);
-    outLines.push_back("SET_NS PASSED:");
+    outLines.push_back("SET_NS PASSED: " + joinStr(newRecords, " ", 1));
     return;
 }
 
