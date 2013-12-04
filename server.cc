@@ -120,23 +120,26 @@ void snapshot_domain(std::vector<std::string> &outLines, std::string line) {
     }
     ostringstream os;
     string cname = inArgs[1];
+    bool snapPassed = true;
     int as = inArgs.size();
     for (int i = 2; i < as; i++) {
         string curr_ip(inArgs[i]);
         if (!decodeIP(curr_ip, errorMsg, ipType, ipTTL, ipAddr, ipAttr)) {
-            os << " r" << curr_ip << errorMsg;
+            os << " r-" << curr_ip << "-" << errorMsg;
+            snapPassed = false;
             continue;
         }
         ips.push_back(IPRecord(ipType, ipAddr, ipTTL));
-        os << " a" << curr_ip;
+        os << " a-" << curr_ip;
     }
     // Find the glb from the map
     shared_ptr<GlbContainer> glb;
     {
         shared_lock<shared_mutex> lock(glbMapMutex);
         unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(cname);
+        string snapPassedMsg = (snapPassed) ? "PASSED:" : "FAILED:";
         if (glbMap.find(cname) == glbMap.end()) {
-            outLines.push_back("SNAPSHOT FAILED: " + cname + " Not found");
+            outLines.push_back("SNAPSHOT " + snapPassedMsg + cname + " Not found");
             return;
         }
         glb = shared_ptr<GlbContainer > (it->second);

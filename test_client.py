@@ -58,6 +58,7 @@ def snapshot(fp,dn,nIps):
     for i in xrange(0,nIps):
        fp.write(" 4-30-%s-1"%intToIp(lo + i))
        fp.write(" 6-30-%s-1"%intToIp6(lo6 + i))
+       fp.write(" 3-15-NOT_AN_IP-1")
     fp.write("\n")
 
 def counts(fp,*dn):
