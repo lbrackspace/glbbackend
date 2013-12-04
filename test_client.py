@@ -81,7 +81,7 @@ for i in xrange(1,4):
     fp.write("SNAPSHOT ns%i.rackexp.org 4-30-127.0.0.1-1\n"%i)
 
 soa="ns1.rackexp.org. root.rackexp.org. 2013102907 28800 14400 3600000 300"
-baseFqdn=".rackexp.org"
+baseFqdn="rackexp.org"
 fp.write("SET_SOA %s %s\n"%(baseFQDN,soa))
 fp.write("OVER\n")
 fp.flush()

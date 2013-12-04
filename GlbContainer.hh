@@ -73,5 +73,6 @@ extern boost::shared_mutex glbMapMutex;
 
 int gcdreduce(std::vector<int> &reduced_weights, std::vector<int> &weights, int& itercount);
 void expandweights(std::vector<int> &expanded, std::vector<int>&weights);
+bool matchesBaseFqdn(const std::string &fqdn, const std::string &baseFqdn);
 #endif	/* GLBCONTAINER_H */
 

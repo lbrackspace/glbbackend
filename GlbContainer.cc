@@ -9,6 +9,8 @@
 #include<boost/random/mersenne_twister.hpp>
 #include<boost/random/uniform_int.hpp>
 #include<boost/random/variate_generator.hpp>
+#include<boost/algorithm/string.hpp>
+#include<iostream>
 #include<vector>
 #include<string>
 
@@ -110,7 +112,8 @@ void GlbContainer::getIPSNoneAlgo(std::deque<IPRecord>& dq, int ipType) {
     boost::shared_lock<boost::shared_mutex> lock(glbMutex);
     int nRecords = ips.size();
     for (int i = 0; i < nRecords; i++) {
-        if (ips[i]->getIPType() | ipType != 0) {
+        //std::cout << ips[i]->getIPAddress() << " " << ips[i]->getIPType() << "&" << ipType << "=" << (ips[i]->getIPType() & ipType) << std::endl;
+        if (((ips[i]->getIPType()) & ipType) > 0) {
             dq.push_back(*(ips[i])); // Copy the ip into the deque
         }
     }
@@ -161,6 +164,16 @@ int gcdreduce(std::vector<int> &reduced_weights, std::vector<int> &weights, int&
     return r;
 }
 
+bool matchesBaseFqdn(const std::string &fqdn, const std::string &baseFqdn) {
+    std::string dotBase("." + baseFqdn);
+    if (boost::algorithm::ends_with(fqdn, dotBase)) {
+        return true;
+    }
+    if (fqdn.compare(baseFqdn) == 0) {
+        return true;
+    }
+    return false;
+}
 
 boost::unordered_map<std::string, boost::shared_ptr<GlbContainer> > glbMap;
 boost::shared_mutex glbMapMutex;

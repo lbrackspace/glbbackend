@@ -199,3 +199,10 @@ BOOST_AUTO_TEST_CASE(test_nsRecords) {
     // Like wise verify that new threads did get the new 2 NS records
     BOOST_CHECK(newRecords);
 }
+
+BOOST_AUTO_TEST_CASE(test_matchesBaseFQDN) {
+    BOOST_CHECK(matchesBaseFqdn("some.domain.rackexp.org", "rackexp.org"));
+    BOOST_CHECK(matchesBaseFqdn("rackexp.org", "rackexp.org"));
+    BOOST_CHECK(!matchesBaseFqdn("some.otherdomain.org", "rackexp.org"));
+    BOOST_CHECK(!matchesBaseFqdn("otherdomain.org", "rackexp.org"));
+}

@@ -5,6 +5,7 @@
 #include<boost/shared_ptr.hpp>
 #include<iterator>
 #include<vector>
+#include<iostream>
 #include "pdns/utility.hh"
 #include "pdns/dnsbackend.hh"
 #include "pdns/dnspacket.hh"
@@ -14,8 +15,8 @@
 #include "server.hh"
 
 GLBBackend::GLBBackend(const string & suffix) {
-	sendSOA = false;
-	sendNS = false;
+    sendSOA = false;
+    sendNS = false;
 }
 
 bool GLBBackend::list(const string &target, int id) {
@@ -28,7 +29,7 @@ void GLBBackend::lookup(const QType &type, const string &qdomain, DNSPacket *p, 
     d_ourname = qdomain;
     sendSOA = false;
     sendNS = false;
-
+    cout << "qType(" << type.getCode() << ")=" << type.getName() << " domain=" << qdomain << endl;
     string domainLowerCase(boost::algorithm::to_lower_copy(qdomain));
     string baseFQDN;
     shared_ptr<GlbContainer> glb;
@@ -45,7 +46,7 @@ void GLBBackend::lookup(const QType &type, const string &qdomain, DNSPacket *p, 
     if (type == QType::SOA || type == QType::ANY || type == QType::NS) {
         shared_ptr<SOAContainer> localSOA = getGlobalSOARecord();
         baseFQDN = localSOA->getBaseFQDN();
-        if (boost::algorithm::ends_with(domainLowerCase, baseFQDN)) {
+        if (matchesBaseFqdn(domainLowerCase, baseFQDN)) {
             soaRecord = localSOA->getSOARecord();
         }
 
@@ -53,7 +54,7 @@ void GLBBackend::lookup(const QType &type, const string &qdomain, DNSPacket *p, 
     if (type == QType::SOA) {
         sendSOA = true;
     }
-    if ((type == QType::NS || type == QType::ANY) && boost::algorithm::ends_with(domainLowerCase, baseFQDN)) {
+    if ((type == QType::NS || type == QType::ANY) && matchesBaseFqdn(domainLowerCase, baseFQDN)) {
         nsRecords = getNSRecords();
         nsIterator = nsRecords->begin();
         sendNS = true;
@@ -70,6 +71,7 @@ void GLBBackend::lookup(const QType &type, const string &qdomain, DNSPacket *p, 
 
         return; // leave the list empty Its not an A record or a AAAA record. :|
     }
+    cout << "ipType=" << ipType << endl;
     (*glb).getIPs(ips, ipType); // getIPs will populate the ips deque
 }
 
