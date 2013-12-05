@@ -28,3 +28,5 @@ export CXXFLAGS="-O0 -ggdb -Wall"
 
 export LDFLAGS="-O0 -ggdb -Wall"
 
+OSX INSTALL NOTES:
+brew install lua boost
