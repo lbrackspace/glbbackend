@@ -90,7 +90,11 @@ for i in xrange(1,4):
 
 fp.write("\nOVER\n")
 fp.flush()
+
+
 drain(fp)
+fp.close()
+s.close()
 sys.exit()
 
 

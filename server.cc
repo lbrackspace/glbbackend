@@ -8,6 +8,10 @@
 #include<boost/bind.hpp>
 #include<boost/chrono.hpp>
 #include<boost/algorithm/string.hpp>
+#include <pdns/ext/rapidjson/include/rapidjson/stringbuffer.h>
+#include <pdns/ext/rapidjson/include/rapidjson/stringbuffer.h>
+#include <pdns/ext/rapidjson/include/rapidjson/filestream.h>
+#include <pdns/ext/rapidjson/include/rapidjson/writer.h>
 #include<cstdlib>
 #include<stdexcept>
 #include<sys/types.h>
@@ -17,6 +21,8 @@
 #include"IPRecord.hh"
 #include"GLBCollection.hh"
 #include"SOAContainer.hh"
+#include "contrib/experiments/cpp/maindemo/rapidjson/document.h"
+#include "contrib/experiments/cpp/maindemo/rapidjson/stringbuffer.h"
 
 using namespace std;
 using namespace boost;
@@ -82,7 +88,7 @@ bool decodeIP(const string inputStr, string &errorMsg, int &ipt, int &ttl, strin
     vector<string> ipVec;
     int nItems = splitStr(ipVec, inputStr, "-");
     if (nItems < 4) {
-        errorMsg = string(":epected4Vals");
+        errorMsg = string("-epected4Vals");
         return false;
     }
     ipt = std::atoi(ipVec[0].c_str());
@@ -90,7 +96,7 @@ bool decodeIP(const string inputStr, string &errorMsg, int &ipt, int &ttl, strin
     addr = ipVec[2];
     attr = ipVec[3];
     if (ttl <= 0) {
-        errorMsg = ":ttl_less_than_0";
+        errorMsg = "-ttl_less_than_0";
         return false;
     }
     if (ipt == 4) {
@@ -98,7 +104,7 @@ bool decodeIP(const string inputStr, string &errorMsg, int &ipt, int &ttl, strin
     } else if (ipt == 6) {
         ipt = IPRecordType::IPv6;
     } else {
-        errorMsg = ":Unknown_ipType";
+        errorMsg = "-Unknown_ipType";
         return false;
     }
     return true;
@@ -166,32 +172,45 @@ void del_domain(vector<string>& outLines, string line) {
 }
 
 void add_domain(vector<string>& outLines, string line) {
+    using namespace rapidjson;
+    ServerJsonBuilder jb;
     vector<string> inArgs;
+    string errorMsg;
+    jb.setType("ADD_DOMAIN");
     int nArgs = splitStr(inArgs, line, " ");
     if (nArgs < 3) {
-        outLines.push_back("ADD_DOMAIN FAILED: Needed cname and algo argument for command arguments for command");
+        jb.setStatus("FAILED");
+        jb.setError("ADD_DOMAIN FAILED: Needed cname and algo argument for command arguments for command");
+        outLines.push_back(jb.to_json());
         return;
     }
-    string cname = inArgs[1];
+    string fqdn = inArgs[1];
     string algoName = inArgs[2];
+    jb.setFqdn(fqdn);
     int glbType = strToGlbType(algoName);
     if (glbType < 0) {
-        outLines.push_back("ADD_DOMAIN FAILED: " + cname + " Unknown Algo " + algoName);
+        jb.setStatus("FAILED");
+        jb.setError("Unknown Algo: " + algoName);
+        outLines.push_back(jb.to_json());
         return;
     }
-    shared_ptr<GlbContainer> glb(new GlbContainer(cname, glbType));
+    shared_ptr<GlbContainer> glb(new GlbContainer(fqdn, glbType));
     {
         lock_guard<shared_mutex> lock(glbMapMutex);
-        if (glbMap.find(cname) != glbMap.end()) {
-            outLines.push_back("ADD_DOMAIN FAILED: " + cname + " already exists can not add");
+        if (glbMap.find(fqdn) != glbMap.end()) {
+            jb.setStatus("FAILED");
+            jb.setError("fqdn already exists");
+            outLines.push_back(jb.to_json());
             return;
         }
-        glbMap[cname] = glb;
+        glbMap[fqdn] = glb;
     }
-    outLines.push_back("ADD_DOMAIN PASSED: " + cname);
+    jb.setStatus("PASSED");
+    outLines.push_back(jb.to_json());
 }
 
 void set_soa(std::vector<std::string> &outLines, std::string line) {
+    using namespace rapidjson;
     vector<string> args;
     int nArgs = splitStr(args, line, " ");
     if (nArgs < 3) {
@@ -228,46 +247,72 @@ void set_ns(std::vector<std::string> &outLines, std::string line) {
 void clr_counts(std::vector<std::string>& outLines, std::string line) {
     vector<string>args;
     int nArgs = splitStr(args, line, " ");
-    for (int i = 1; i < nArgs; i++) {
-        string cname = args[i];
-        {
-            shared_lock<shared_mutex> lock(glbMapMutex);
-            unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(cname);
+    bool failed = false;
+    ServerJsonBuilder jb;
+    jb.setType("CLR_COUNTS");
+    if (nArgs > 1) {
+        shared_lock<shared_mutex> lock(glbMapMutex);
+        for (int i = 1; i < nArgs; i++) {
+            string fqdn = args[i];
+            unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(fqdn);
             if (it == glbMap.end()) {
-                outLines.push_back("CLR_COUNTS " + cname + " FAILED: cname doesn't exist");
+                jb.addError("fqdn" + fqdn + " doesn't exist");
+                failed = true;
                 continue;
             }
             (it->second)->clrNLookups();
-            outLines.push_back("CLR_COUNTS " + cname + " PASSED");
         }
+        if (failed) {
+            jb.setStatus("FAILED");
+        } else {
+            jb.setStatus("PASSED");
+        }
+        outLines.push_back(jb.to_json());
+    } else {
+        shared_lock<shared_mutex> lock(glbMapMutex);
+        unordered_map<string, shared_ptr<GlbContainer> >::iterator it;
+        for (it = glbMap.begin(); it != glbMap.end(); it++) {
+            it->second->clrNLookups();
+        }
+        jb.setStatus("PASSED");
+        outLines.push_back(jb.to_json());
     }
 }
 
 void get_counts(std::vector<std::string>& outLines, std::string line) {
     vector<string> args;
+    ServerJsonBuilder jb;
+    jb.setType("GET_COUNTS");
     int nArgs = splitStr(args, line, " ");
+    bool failed = false;
     if (nArgs > 1) {
-        int as = args.size();
-        for (int i = 1; i < as; i++) {
+        for (int i = 1; i < nArgs; i++) {
             shared_lock<shared_mutex> lock(glbMapMutex);
-            string cname(args[i]);
-            unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(cname);
+            string fqdn(args[i]);
+            unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(fqdn);
             if (it == glbMap.end()) {
-                outLines.push_back("COUNTS " + cname + " FAILED: cname doesn't exist");
+                jb.setStatus("FAILED");
+                jb.addError(string("fqdn " + fqdn + " doesn't exist"));
+                failed = true;
                 continue;
             }
             ostringstream os;
-            os << "COUNTS " + cname << " PASSED: " << (it->second)->getNLookups();
-            outLines.push_back(os.str());
+            jb.addCount(fqdn, it->second->getNLookups());
         }
+        if (failed) {
+            jb.setStatus("FAILED");
+        } else {
+            jb.setStatus("PASSED");
+        }
+        outLines.push_back(jb.to_json());
     } else {
         shared_lock<shared_mutex> lock(glbMapMutex);
         unordered_map<string, shared_ptr<GlbContainer> >::iterator it;
         for (it = glbMap.begin(); it != glbMap.end(); it++) {
-            ostringstream os;
-            os << "COUNT " << it->first << " PASSED: " << (it->second)->getNLookups();
-            outLines.push_back(os.str());
+            jb.addCount(it->first, it->second->getNLookups());
         }
+        jb.setStatus("PASSED");
+        outLines.push_back(jb.to_json());
     }
 }
 
@@ -296,9 +341,10 @@ void debug_domains(vector<string>& outLines, string line) {
 }
 
 void unknown_command(vector<string>&outLines, string line) {
-    ostringstream os;
-    os << "UNKNOWN COMMAND: " << line;
-    outLines.push_back(os.str());
+    ServerJsonBuilder jb;
+    jb.setType("UNKNOWN COMMAND");
+    jb.setError(line);
+    outLines.push_back(jb.to_json());
 }
 
 int server(shared_ptr<ip::tcp::iostream> tstream) {

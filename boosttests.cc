@@ -15,6 +15,7 @@
 #include"GlbContainer.hh"
 #include"IPRecord.hh"
 #include"SOAContainer.hh"
+#include"server.hh"
 
 using namespace boost;
 using namespace std;
@@ -102,6 +103,7 @@ BOOST_AUTO_TEST_CASE(show_size_of_Glb) {
     std::cout << "sizeof(GlbContainer):: " << sizeof (GlbContainer) << std::endl;
     std::cout << "sizeof(IPRecord):      " << sizeof (IPRecord) << std::endl;
     std::cout << "sizeof(SOAContainer):  " << sizeof (SOAContainer) << std::endl;
+    std::cout << "sizeof(ServerJsonBuilder): " << sizeof (ServerJsonBuilder) << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(time_tests) {
