@@ -180,7 +180,7 @@ void add_domain(vector<string>& outLines, string line) {
     int nArgs = splitStr(inArgs, line, " ");
     if (nArgs < 3) {
         jb.setStatus("FAILED");
-        jb.setError("ADD_DOMAIN FAILED: Needed cname and algo argument for command arguments for command");
+        jb.setError("Needed fqdn and algo argument for command arguments for command");
         outLines.push_back(jb.to_json());
         return;
     }
@@ -229,18 +229,25 @@ void set_soa(std::vector<std::string> &outLines, std::string line) {
 void set_ns(std::vector<std::string> &outLines, std::string line) {
     vector<string> args;
     int nArgs = splitStr(args, line, " ");
+    ServerJsonBuilder jb;
+    jb.setType("SET_NS");
     if (nArgs < 2) {
+        jb.setStatus("FAILED");
         ostringstream os;
-        os << "SET_NS FAILED: expected atleast 2 parameters only got " << nArgs;
-        outLines.push_back(os.str());
+        os << nArgs;
+        os << "expected atleast 2 parameters only got " << nArgs;
+        jb.setError(os.str());
+        outLines.push_back(jb.to_json());
         return;
     }
     vector<string> newRecords;
     for (int i = 1; i < nArgs; i++) {
         newRecords.push_back(args[i]);
+        jb.addNSRecord(args[i]);
     }
     setNSRecords(newRecords);
-    outLines.push_back("SET_NS PASSED: " + joinStr(newRecords, " ", 1));
+    jb.setStatus("PASSED");
+    outLines.push_back(jb.to_json());
     return;
 }
 

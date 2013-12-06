@@ -17,20 +17,31 @@ struct FqdnCount {
     long count;
 };
 
+struct IpJson {
+    bool hasError;
+    std::string error;
+    std::string ip;
+};
+
 class ServerJsonBuilder {
 private:
     std::string error;
-    bool hasError;
     std::string type;
-    bool hasType;
     std::string fqdn;
-    bool hasFqdn;
     std::string status;
-    bool hasStatus;
     std::vector<FqdnCount> counts;
-    bool hasCounts;
     std::vector<std::string> errors;
+    std::vector<IpJson> ips;
+    std::vector<std::string> nsRecords;
+    bool hasError;
+    bool hasType;
+    bool hasFqdn;
+    bool hasStatus;
+    bool hasCounts;
     bool hasErrors;
+    bool hasIps;
+    bool hasNsRecords;
+
 public:
 
     ServerJsonBuilder() {
@@ -39,6 +50,8 @@ public:
         hasFqdn = false;
         hasErrors = false;
         hasCounts = false;
+        hasIps = false;
+        hasNsRecords = false;
     }
 
     void setFqdn(std::string _fqdn) {
@@ -66,12 +79,31 @@ public:
         hasStatus = true;
     }
 
+    void addNSRecord(std::string ns) {
+        nsRecords.push_back(ns);
+        hasNsRecords = true;
+    }
+
     void addCount(std::string fqdn, long count) {
         FqdnCount fc;
         fc.fqdn = fqdn;
         fc.count = count;
         counts.push_back(fc);
         hasCounts = true;
+    }
+
+    void addIp(std::string ip, std::string _error) {
+        IpJson ij;
+        ij.ip = ip;
+        if (error.compare("") != 0) {
+            ij.error = _error;
+            ij.hasError = true;
+        } else {
+            ij.hasError = false;
+        }
+        ips.push_back(ij);
+        hasIps = true;
+
     }
 
     std::string to_json() {
@@ -114,6 +146,26 @@ public:
                 jsonArray.PushBack(errorMsg, aloc);
             }
             doc.AddMember("errors", jsonArray, aloc);
+        }
+        if (hasIps) {
+            rapidjson::Value ipArray;
+            ipArray.SetArray();
+            std::vector<IpJson>::iterator it;
+            for (it = ips.begin(); it != ips.end(); it++) {
+                IpJson ij = *it;
+                rapidjson::Value ipObj;
+                ipObj.SetObject();
+                rapidjson::Value ip;
+                ip.SetString(ij.ip.c_str());
+                ipObj.AddMember("ip", ip, aloc);
+                if (ij.hasError) {
+                    rapidjson::Value _error;
+                    _error.SetString(ij.error.c_str());
+                    ipObj.AddMember("ip", ip, aloc);
+                }
+                ipArray.PushBack(ipObj, aloc);
+            }
+            doc.AddMember("ips", ipArray, aloc);
         }
         doc.Accept(wr);
         return std::string(sb.GetString());

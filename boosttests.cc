@@ -104,6 +104,7 @@ BOOST_AUTO_TEST_CASE(show_size_of_Glb) {
     std::cout << "sizeof(IPRecord):      " << sizeof (IPRecord) << std::endl;
     std::cout << "sizeof(SOAContainer):  " << sizeof (SOAContainer) << std::endl;
     std::cout << "sizeof(ServerJsonBuilder): " << sizeof (ServerJsonBuilder) << std::endl;
+    std::cout << "sizeof(IpJson): " << sizeof (IpJson) << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(time_tests) {
