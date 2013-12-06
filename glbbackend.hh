@@ -17,7 +17,7 @@
 
 class GLBBackend : public DNSBackend {
 public:
-    GLBBackend(const string &suffix = "");
+    GLBBackend(const string &suffix);
     bool list(const string &target, int id);
     void lookup(const QType &type, const string &qdomain, DNSPacket *p, int zoneId);
     bool get(DNSResourceRecord &rr);

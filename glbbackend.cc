@@ -15,10 +15,15 @@
 #include "glbbackend.hh"
 #include "SOAContainer.hh"
 #include "server.hh"
+#include "ServerSingleton.hh"
 
 const bool DEBUG = false;
 
 GLBBackend::GLBBackend(const string & suffix) {
+    setArgPrefix(suffix);
+    string ip = getArg("server-ip");
+    int port = getArgAsNum("server-port");
+    ServerSingleton::getInstance(ip, port);
     sendSOA = false;
     sendNS = false;
     if (DEBUG) {
@@ -175,31 +180,32 @@ bool GLBBackend::get(DNSResourceRecord &rr) {
 class GLBFactory : public BackendFactory {
 public:
 
-    GLBFactory() : BackendFactory("glb") {
+    GLBFactory(const string &name) : BackendFactory(name), d_name(name) {
     }
 
     void declareArguments(const string &suffix = "") {
 
-        declare(suffix, "darkside", "Something something something darkside.", "vader");
+
+        declare(suffix, "server-port", "Port for server to listen on for commands.", "8888");
+        declare(suffix, "server-ip", "IP for server to listen on for commands." , "127.0.0.1");
     }
 
     DNSBackend *make(const string &suffix = "") {
 
-        return new GLBBackend(suffix);
+        return new GLBBackend(d_name);
     }
+private:
+    string d_name;
 };
 
 class GLBLoader {
 public:
 
-    GLBLoader() {
-        BackendMakers().report(new GLBFactory);
-        L << Logger::Warning << " [GLBBackend] This is the glbbackend version " << GLB_VERSION << " ("__DATE__", "__TIME__") reporting" << endl;
-        cout << "Spinning up server" << endl;
-        start_server_thread("127.0.0.1", 8888);
-        cout << "Server running" << endl;
+    GLBLoader(const string &name) {
+        BackendMakers().report(new GLBFactory(name));
+        L << Logger::Warning << "[GLBBackend] This is the glbbackend version " << GLB_VERSION << " ("__DATE__", "__TIME__") reporting" << endl;
     }
 };
 
-static GLBLoader glbLoader;
+static GLBLoader glbLoader("glb");
 
