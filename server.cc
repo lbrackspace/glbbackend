@@ -121,11 +121,11 @@ void snapshot_domain(std::vector<std::string> &outLines, std::string line) {
     string errorMsg;
     int nArgs = splitStr(inArgs, line, " ");
     if (nArgs < 2) {
-        outLines.push_back("SNAPSHOT FAILED: cname required");
+        outLines.push_back("SNAPSHOT FAILED: fqdn required");
         return;
     }
     ostringstream os;
-    string cname = inArgs[1];
+    string fqdn = inArgs[1];
     bool snapPassed = true;
     int as = inArgs.size();
     for (int i = 2; i < as; i++) {
@@ -142,35 +142,35 @@ void snapshot_domain(std::vector<std::string> &outLines, std::string line) {
     shared_ptr<GlbContainer> glb;
     {
         shared_lock<shared_mutex> lock(glbMapMutex);
-        unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(cname);
+        unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(fqdn);
         string snapPassedMsg = (snapPassed) ? "PASSED:" : "FAILED:";
-        if (glbMap.find(cname) == glbMap.end()) {
-            outLines.push_back("SNAPSHOT " + snapPassedMsg + cname + " Not found");
+        if (glbMap.find(fqdn) == glbMap.end()) {
+            outLines.push_back("SNAPSHOT " + snapPassedMsg + fqdn + " Not found");
             return;
         }
         glb = shared_ptr<GlbContainer > (it->second);
     }
     (*glb).setIPs(ips);
-    outLines.push_back("SNAPSHOT PASSED: " + cname + " " + os.str());
+    outLines.push_back("SNAPSHOT PASSED: " + fqdn + " " + os.str());
 }
 
 void del_domain(vector<string>& outLines, string line) {
     vector<string> inArgs;
     int nArgs = splitStr(inArgs, line, " ");
-    string cname = inArgs[1];
+    string fqdn = inArgs[1];
     if (nArgs < 2) {
-        outLines.push_back("DEL_DOMAIN FAILED: Needed cname argument for command");
+        outLines.push_back("DEL_DOMAIN FAILED: Needed fqdn argument for command");
         return;
     }
     {
         lock_guard<shared_mutex> lock(glbMapMutex);
-        unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(cname);
+        unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(fqdn);
         if (it == glbMap.end()) {
-            outLines.push_back("DEL_DOMAIN FAILED: " + cname + " not found");
+            outLines.push_back("DEL_DOMAIN FAILED: " + fqdn + " not found");
             return;
         }
-        glbMap.erase(cname);
-        outLines.push_back("DEL_DOMAIN PASSED: " + cname);
+        glbMap.erase(fqdn);
+        outLines.push_back("DEL_DOMAIN PASSED: " + fqdn);
     }
 }
 
