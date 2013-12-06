@@ -196,7 +196,7 @@ public:
         BackendMakers().report(new GLBFactory);
         L << Logger::Warning << " [GLBBackend] This is the glbbackend version " << GLB_VERSION << " ("__DATE__", "__TIME__") reporting" << endl;
         cout << "Spinning up server" << endl;
-        start_server_thread("127.0.0.1", 8888);
+        start_server_thread("0.0.0.0", 8888);
         cout << "Server running" << endl;
     }
 };
