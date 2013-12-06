@@ -112,65 +112,79 @@ bool decodeIP(const string inputStr, string &errorMsg, int &ipt, int &ttl, strin
 
 void snapshot_domain(std::vector<std::string> &outLines, std::string line) {
     vector<string> inArgs;
-    vector<string>ipVec;
     vector<IPRecord> ips;
     int ipTTL;
     int ipType;
     string ipAddr;
     string ipAttr;
     string errorMsg;
+    string snapPassedMsg;
+    ServerJsonBuilder jb;
+    jb.setType("SNAPSHOT");
     int nArgs = splitStr(inArgs, line, " ");
     if (nArgs < 2) {
-        outLines.push_back("SNAPSHOT FAILED: fqdn required");
+        jb.setStatus("FAILED");
+        jb.addError("fqdn required");
         return;
     }
-    ostringstream os;
     string fqdn = inArgs[1];
+    jb.setFqdn(fqdn);
     bool snapPassed = true;
     int as = inArgs.size();
     for (int i = 2; i < as; i++) {
         string curr_ip(inArgs[i]);
         if (!decodeIP(curr_ip, errorMsg, ipType, ipTTL, ipAddr, ipAttr)) {
-            os << " r-" << curr_ip << "-" << errorMsg;
+            jb.addIp(curr_ip, errorMsg);
             snapPassed = false;
             continue;
         }
         ips.push_back(IPRecord(ipType, ipAddr, ipTTL));
-        os << " a-" << curr_ip;
+        jb.addIp(curr_ip, "");
     }
     // Find the glb from the map
     shared_ptr<GlbContainer> glb;
     {
         shared_lock<shared_mutex> lock(glbMapMutex);
         unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(fqdn);
-        string snapPassedMsg = (snapPassed) ? "PASSED:" : "FAILED:";
+        snapPassedMsg = (snapPassed) ? "PASSED" : "FAILED";
         if (glbMap.find(fqdn) == glbMap.end()) {
-            outLines.push_back("SNAPSHOT " + snapPassedMsg + fqdn + " Not found");
+            jb.setStatus("FAILED");
+            jb.setError(fqdn + " Not found");
+            outLines.push_back(jb.to_json());
             return;
         }
         glb = shared_ptr<GlbContainer > (it->second);
     }
     (*glb).setIPs(ips);
-    outLines.push_back("SNAPSHOT PASSED: " + fqdn + " " + os.str());
+    jb.setStatus(snapPassedMsg);
+    outLines.push_back(jb.to_json());
 }
 
 void del_domain(vector<string>& outLines, string line) {
     vector<string> inArgs;
     int nArgs = splitStr(inArgs, line, " ");
     string fqdn = inArgs[1];
+    ServerJsonBuilder jb;
+    jb.setType("DEL_DOMAIN");
     if (nArgs < 2) {
-        outLines.push_back("DEL_DOMAIN FAILED: Needed fqdn argument for command");
+        jb.setStatus("FAILED");
+        jb.setError("DEL_DOMAIN FAILED: Needed fqdn argument for command");
+        outLines.push_back(jb.to_json());
         return;
     }
     {
         lock_guard<shared_mutex> lock(glbMapMutex);
+        jb.setFqdn(fqdn);
         unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(fqdn);
         if (it == glbMap.end()) {
-            outLines.push_back("DEL_DOMAIN FAILED: " + fqdn + " not found");
+            jb.setStatus("FAILED");
+            jb.setError(fqdn + " not found");
+            outLines.push_back(jb.to_json());
             return;
         }
         glbMap.erase(fqdn);
-        outLines.push_back("DEL_DOMAIN PASSED: " + fqdn);
+        jb.setStatus("PASSED");
+        outLines.push_back(jb.to_json());
     }
 }
 
@@ -215,17 +229,22 @@ void add_domain(vector<string>& outLines, string line) {
 void set_soa(std::vector<std::string> &outLines, std::string line) {
     using namespace rapidjson;
     vector<string> args;
+    ServerJsonBuilder jb;
+    jb.setType("SET_SOA");
     int nArgs = splitStr(args, line, " ");
     if (nArgs < 3) {
         ostringstream os;
-        os << "SET_SOA FAILED: expected atleast 3 arguments but found only " << nArgs;
-        outLines.push_back(os.str());
+        os << "expected atleast 3 arguments but found only " << nArgs;
+        jb.setStatus("FAILED");
+        jb.setError(os.str());
+        outLines.push_back(jb.to_json());
         return;
     }
     string baseFQDNValue = args[1];
     string soaValue = joinStr(args, " ", 2);
     setGlobalSOARecord(soaValue, baseFQDNValue);
-    outLines.push_back("SET_SOA PASSED:");
+    jb.setStatus("PASSED");
+    outLines.push_back(jb.to_json());
     return;
 }
 
@@ -237,7 +256,6 @@ void set_ns(std::vector<std::string> &outLines, std::string line) {
     if (nArgs < 2) {
         jb.setStatus("FAILED");
         ostringstream os;
-        os << nArgs;
         os << "expected atleast 2 parameters only got " << nArgs;
         jb.setError(os.str());
         outLines.push_back(jb.to_json());

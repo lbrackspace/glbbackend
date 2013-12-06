@@ -95,11 +95,11 @@ public:
     void addIp(std::string ip, std::string _error) {
         IpJson ij;
         ij.ip = ip;
-        if (error.compare("") != 0) {
+        if (_error.compare("") == 0) {
+            ij.hasError = false;
+        } else {
             ij.error = _error;
             ij.hasError = true;
-        } else {
-            ij.hasError = false;
         }
         ips.push_back(ij);
         hasIps = true;
@@ -161,7 +161,7 @@ public:
                 if (ij.hasError) {
                     rapidjson::Value _error;
                     _error.SetString(ij.error.c_str());
-                    ipObj.AddMember("ip", ip, aloc);
+                    ipObj.AddMember("error", _error, aloc);
                 }
                 ipArray.PushBack(ipObj, aloc);
             }

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import socket
+import json
 import sys
 import os
 
@@ -80,7 +81,8 @@ for i in xrange(0,2):
 for i in xrange(1,4):
     fp.write("ADD_DOMAIN ns%i.rackexp.org NONE\n"%i);
     fp.write("SNAPSHOT ns%i.rackexp.org 4-30-127.0.0.1-1"%i)
-    fp.write(" 6-30-%s-1\n"%intToIp6(lo6+i))
+    fp.write(" 6-30-%s-1"%intToIp6(lo6+i))
+    fp.write(" 44-30-BAD_IP-1\n")
 
 soa="ns1.rackexp.org. root.rackexp.org. 2013102907 28800 14400 3600000 300"
 baseFqdn="rackexp.org"
