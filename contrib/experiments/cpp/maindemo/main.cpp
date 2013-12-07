@@ -20,12 +20,17 @@
 #include<boost/random/mersenne_twister.hpp>
 #include<boost/random/uniform_int.hpp>
 #include<boost/random/variate_generator.hpp>
+#include<rapidjson/document.h>
+#include<rapidjson/writer.h>
 #include"DemoUtils.h"
 #include"ThreadManager.h"
 #include"Matrix.h"
 #include"Point.h"
 #include"ring_buffer.h"
 #include"BitArray.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/filestream.h"
+#include "rapidjson/writer.h"
 
 
 using namespace std;
@@ -37,6 +42,7 @@ boost::uniform_int<int> ud;
 boost::variate_generator<boost::mt19937&, boost::uniform_int<> > rn(rng, ud);
 
 const int LINE_SIZE = 1024;
+string buildJson(string val, int n);
 Point getPoint(vector<string> args, int offset);
 string showsizeof();
 string help();
@@ -54,6 +60,55 @@ double gettimevalue() {
     }
     out = (double) tv.tv_sec + (double) tv.tv_usec * 0.000001;
     return out;
+}
+
+string buildJson2(string val, int n) {
+    using namespace rapidjson;
+    Document document;
+    Document::AllocatorType& allocator = document.GetAllocator();
+
+    document.SetArray();
+
+    document.PushBack("Test1", allocator);
+    document.PushBack("Test2", allocator);
+
+    Value item;
+    item.SetObject();
+    item.AddMember("Id", 1, allocator);
+    item.AddMember("Name", "ARInside", allocator);
+    document.PushBack(item, allocator);
+
+    // check array size
+
+
+    StringBuffer f;
+    Writer<StringBuffer> writer(f);
+    document.Accept(writer);
+    return std::string(f.GetString());
+}
+
+string buildJson(string val, int n) {
+    using namespace rapidjson;
+    using namespace std;
+    Document doc;
+    Document::AllocatorType& aloc = doc.GetAllocator();
+    doc.SetObject();
+    doc.AddMember("someString", val.c_str(), aloc);
+    doc.AddMember("someInt", 500, aloc);
+    doc.AddMember("bool",false,aloc);
+    Value arry;
+    arry.SetArray();
+    for (int i = 0; i < n; i++) {
+        Value l;
+        l.SetInt64(5000000000 + i);
+        arry.PushBack(l, aloc);
+    }
+    arry.PushBack("wtf", aloc);
+    doc.AddMember("someArry", arry, aloc);
+    StringBuffer sb;
+    Writer<StringBuffer> wr(sb);
+    doc.Accept(wr);
+    return string(sb.GetString());
 }
 
 class MyTimer {
@@ -445,6 +500,19 @@ int main(int argc, char **argv) {
                 clock_t endTime = clock();
                 double secs = static_cast<double> (endTime - startTime) / CLOCKS_PER_SEC;
                 cout << "Took " << secs << " seconds to shuffle " << endl;
+            } else if (nArgs >= 3 && cmdArgs[0].compare("write_json") == 0) {
+                string val = cmdArgs[1];
+                int n = std::atoi(cmdArgs[2].c_str());
+                int nl = 1;
+                if (nArgs > 3) {
+                    nl = std::atoi(cmdArgs[3].c_str());
+                }
+                cout << "Writing json with params " << val << " " << n << " " << nl << " times" << endl;
+                string json("");
+                for (i = 0; i < nl; i++) {
+                    json = buildJson(val, n);
+                }
+                cout << json << endl;
             } else {
                 cout << "Unknown command" << cmd << endl;
                 cout << help() << endl;
@@ -525,6 +593,7 @@ string help() {
             << "rndsh <nArgs> #Randomly shuffle the values" << endl
             << "readtime #Read the timer" << endl
             << "resettime #Reset the timer" << endl
+            << "write_json <val> <n> [ln]#write json value" << endl
             << "exit #Exit program" << endl;
 
     return os.str();
