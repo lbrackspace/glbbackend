@@ -1,1 +1,1 @@
-glbbackend.o GlbContainer.o IPRecord.o GLBCollection.o server.o SOAContainer.o ServerSingleton.o
+glbbackend.o GlbContainer.o IPRecord.o GLBCollection.o SOAContainer.o ServerJsonBuilder.o GLBCommandServer.o ServerSingleton.o

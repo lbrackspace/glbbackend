@@ -2,7 +2,7 @@
 #include<iostream>
 #include<unistd.h>
 #include<boost/thread.hpp>
-#include"server.hh"
+#include "GLBCommandServer.hh"
 
 int usage(char *prog) {
     using namespace std;
@@ -21,10 +21,12 @@ int main_daemon(int argc, char **argv) {
     cout << "pid = " << getpid() << endl;
     string ip_addr(argv[1]);
     int port = std::atoi(argv[2]);
-    start_server_thread(ip_addr, port);
+    GLBCommandServer server(ip_addr, port);
+    server.start();
     while (true) {
         boost::this_thread::sleep( boost::posix_time::milliseconds(250) );
     }
+    return 0;
 }
 
 int main(int argc, char **argv) {
@@ -36,7 +38,8 @@ int main(int argc, char **argv) {
     cout << "pid = " << getpid() << endl;
     string ip_addr_str(argv[1]);
     int port = std::atoi(argv[2]);
-    listener(ip_addr_str, port);
+    GLBCommandServer server(ip_addr_str, port);
+    server.listener();
     return 0;
 }
 

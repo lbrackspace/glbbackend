@@ -15,7 +15,7 @@
 #include"GlbContainer.hh"
 #include"IPRecord.hh"
 #include"SOAContainer.hh"
-#include"server.hh"
+#include"ServerJsonBuilder.hh"
 
 using namespace boost;
 using namespace std;

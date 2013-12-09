@@ -14,7 +14,6 @@
 #include "pdns/logger.hh"
 #include "glbbackend.hh"
 #include "SOAContainer.hh"
-#include "server.hh"
 #include "ServerSingleton.hh"
 
 const bool DEBUG = false;
