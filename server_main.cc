@@ -1,8 +1,10 @@
-#include<cstdlib>
-#include<iostream>
-#include<unistd.h>
-#include<boost/thread.hpp>
+#include <string>
+#include <cstdlib>
+#include <iostream>
+#include <unistd.h>
+#include <boost/thread.hpp>
 #include "GLBCommandServer.hh"
+#include "StartUpClient.hh"
 
 int usage(char *prog) {
     using namespace std;
@@ -12,34 +14,27 @@ int usage(char *prog) {
     return 0;
 }
 
-int main_daemon(int argc, char **argv) {
-    using namespace std;
-    if (argc < 3) {
-        usage(argv[0]);
-        return -1;
-    }
-    cout << "pid = " << getpid() << endl;
-    string ip_addr(argv[1]);
-    int port = std::atoi(argv[2]);
-    GLBCommandServer server(ip_addr, port);
-    server.start();
-    while (true) {
-        boost::this_thread::sleep( boost::posix_time::milliseconds(250) );
-    }
-    return 0;
-}
-
 int main(int argc, char **argv) {
     using namespace std;
     if (argc < 3) {
         usage(argv[0]);
         return -1;
     }
+    bool useClient = false;
     cout << "pid = " << getpid() << endl;
     string ip_addr_str(argv[1]);
     int port = std::atoi(argv[2]);
-    GLBCommandServer server(ip_addr_str, port);
-    server.listener();
+    if (argc > 3 && string(argv[3]).compare("client") == 0) {
+        useClient = true;
+    }
+    if (useClient) {
+        StartUpClient sc(ip_addr_str, port);
+        bool status = sc.connect();
+        cout << "startup client reported: " << boolalpha << status << endl;
+    } else {
+        GLBCommandServer server(ip_addr_str, port);
+        server.listener();
+    }
     return 0;
 }
 

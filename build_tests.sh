@@ -7,6 +7,8 @@ rm server
 rm boosttests
 echo "Building SOAContainer.cc"
 g++ ${CF} -c SOAContainer.cc
+echo "Building StartUpClient.cc"
+g++ ${CF} -c StartUpClient.cc
 echo "Building GLBCollection.cc"
 g++ ${CF} -c GLBCollection.cc
 echo "Building IPRecord.cc"
@@ -22,7 +24,7 @@ g++ ${CF} -c server_main.cc
 echo "Building boosttests.cc"
 g++ ${CF} -c boosttests.cc
 echo "Linking server"
-g++ ${CF} -o server server_main.o GLBCommandServer.o GLBCollection.o GlbContainer.o IPRecord.o SOAContainer.o ServerJsonBuilder.o -lboost_thread-mt -lboost_system-mt -lpthread
+g++ ${CF} -o server server_main.o GLBCommandServer.o GLBCollection.o GlbContainer.o IPRecord.o SOAContainer.o ServerJsonBuilder.o StartUpClient.o -lboost_thread-mt -lboost_system-mt -lpthread
 echo "Linking boosttests"
-g++ ${CF} -o boosttests boosttests.o GlbContainer.o IPRecord.o SOAContainer.o -lboost_thread-mt -lboost_system-mt -lboost_unit_test_framework-mt
+g++ ${CF} -o boosttests boosttests.o GlbContainer.o IPRecord.o SOAContainer.o StartUpClient.cc GLBCommandServer.o ServerJsonBuilder.o -lboost_thread-mt -lboost_system-mt -lboost_unit_test_framework-mt
 

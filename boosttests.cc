@@ -1,21 +1,23 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MAIN
 
-#include<iostream>
-#include<sys/time.h>
-#include<deque>
-#include<vector>
-#include<boost/test/unit_test.hpp>
-#include<boost/shared_ptr.hpp>
-#include<string>
-#include<vector>
-#include<ctime>
+#include <iostream>
+#include <sys/time.h>
+#include <deque>
+#include <vector>
+#include <boost/test/unit_test.hpp>
+#include <boost/shared_ptr.hpp>
+#include <string>
+#include <vector>
+#include <ctime>
 #include <sys/types.h>
 #include <unistd.h>
-#include"GlbContainer.hh"
-#include"IPRecord.hh"
-#include"SOAContainer.hh"
-#include"ServerJsonBuilder.hh"
+#include "GlbContainer.hh"
+#include "IPRecord.hh"
+#include "SOAContainer.hh"
+#include "ServerJsonBuilder.hh"
+#include "StartUpClient.hh"
+#include "GLBCommandServer.hh"
 
 using namespace boost;
 using namespace std;
@@ -100,11 +102,13 @@ BOOST_AUTO_TEST_CASE(test_IP_to_string) {
 }
 
 BOOST_AUTO_TEST_CASE(show_size_of_Glb) {
-    std::cout << "sizeof(GlbContainer):: " << sizeof (GlbContainer) << std::endl;
-    std::cout << "sizeof(IPRecord):      " << sizeof (IPRecord) << std::endl;
-    std::cout << "sizeof(SOAContainer):  " << sizeof (SOAContainer) << std::endl;
+    std::cout << "sizeof(GlbContainer):      " << sizeof (GlbContainer) << std::endl;
+    std::cout << "sizeof(IPRecord):          " << sizeof (IPRecord) << std::endl;
+    std::cout << "sizeof(SOAContainer):      " << sizeof (SOAContainer) << std::endl;
     std::cout << "sizeof(ServerJsonBuilder): " << sizeof (ServerJsonBuilder) << std::endl;
-    std::cout << "sizeof(IpJson): " << sizeof (IpJson) << std::endl;
+    std::cout << "sizeof(IpJson):            " << sizeof (IpJson) << std::endl;
+    std::cout << "sizeof(GLBCommandServer:   " << sizeof (GLBCommandServer) << std::endl;
+    std::cout << "sizeof(StartUpClient):     " << sizeof (StartUpClient) << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(time_tests) {
