@@ -6,37 +6,31 @@
 #include <boost/shared_ptr.hpp>
 
 class GLBCommandServer {
- private:
-  std::string m_ip_address = "default";
-  int m_port = -1;
-  void addDomain(std::vector<std::string>& outLines, std::string line);
-  void delDomain(std::vector<std::string>& outLines, std::string line);
-  void setSOA(std::vector<std::string> &outLines, std::string line);
-  void setNS(std::vector<std::string> &outLines, std::string line);
-  void debugDomains(std::vector<std::string>& outLines, std::string line);
-  void unknownCommand(std::vector<std::string>&outLines, std::string line);
-  bool decodeIP(const std::string inputStr, std::string &errorMsg, int &ipt,
-                int &ttl, std::string &addr, std::string &attr);
-  void snapshotDomain(std::vector<std::string> &outLines, std::string line);
-  void getCounts(std::vector<std::string>& outLines, std::string line);
-  void clearCounts(std::vector<std::string>& outLines, std::string line);
-  int server(boost::shared_ptr<boost::asio::ip::tcp::iostream> tstream);
-  bool cmdMatch(int nArgs, const std::vector<std::string>& sv,
-                std::string expected);
-  std::string joinStr(const std::vector<std::string>& strIn, std::string delim);
-  std::string joinStr(const std::vector<std::string> &strIn, std::string delim,
-                      int start_i);
-  int splitStr(std::vector<std::string>& svOut, std::string strIn,
-               std::string delim);
- public:
-  GLBCommandServer(const std::string ip, int port);
-  void start();
-  int listener(std::string ip, int port);
-  virtual ~GLBCommandServer();
-  const std::string& getIpAddress() const;
-  void setIpAddress(const std::string& ip);
-  int getPort() const;
-  void setPort(int port);
+private:
+    void addDomain(std::vector<std::string>& outLines, std::string line);
+    void delDomain(std::vector<std::string>& outLines, std::string line);
+    void setSOA(std::vector<std::string> &outLines, std::string line);
+    void setNS(std::vector<std::string> &outLines, std::string line);
+    void debugDomains(std::vector<std::string>& outLines, std::string line);
+    void unknownCommand(std::vector<std::string>&outLines, std::string line);
+    bool decodeIP(const std::string inputStr, std::string &errorMsg, int &ipt,
+            int &ttl, std::string &addr, std::string &attr);
+    void snapshotDomain(std::vector<std::string> &outLines, std::string line);
+    void getCounts(std::vector<std::string>& outLines, std::string line);
+    void clearCounts(std::vector<std::string>& outLines, std::string line);
+    int server(boost::shared_ptr<boost::asio::ip::tcp::iostream> tstream);
+    bool cmdMatch(int nArgs, const std::vector<std::string>& sv,
+            std::string expected);
+    std::string joinStr(const std::vector<std::string>& strIn, std::string delim);
+    std::string joinStr(const std::vector<std::string> &strIn, std::string delim,
+            int start_i);
+    int splitStr(std::vector<std::string>& svOut, std::string strIn,
+            std::string delim);
+public:
+    GLBCommandServer();
+    void start(std::string ip, int port);
+    int listener(std::string ip, int port);
+    virtual ~GLBCommandServer();
 };
 
 #endif /* LISTENSERVER_HH_ */

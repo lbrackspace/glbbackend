@@ -27,25 +27,7 @@ const int STRBUFFSIZE = 4096;
 
 const boost::chrono::microseconds sdelay(50);
 
-GLBCommandServer::GLBCommandServer(const std::string ip, int port) {
-  this->m_ip_address = ip;
-  this->m_port = port;
-}
-
-const std::string& GLBCommandServer::getIpAddress() const {
-  return this->m_ip_address;
-}
-
-void GLBCommandServer::setIpAddress(const std::string& ip) {
-  this->m_ip_address = m_ip_address;
-}
-
-int GLBCommandServer::getPort() const {
-  return m_port;
-}
-
-void GLBCommandServer::setPort(int port) {
-  this->m_port = port;
+GLBCommandServer::GLBCommandServer() {
 }
 
 void GLBCommandServer::addDomain(std::vector<std::string>& outLines,
@@ -491,7 +473,7 @@ int GLBCommandServer::splitStr(std::vector<std::string>& svOut,
   return svOut.size();
 }
 
-void GLBCommandServer::start() {
+void GLBCommandServer::start(string m_ip_address,int m_port) {
   boost::thread th(bind(&GLBCommandServer::listener, this, m_ip_address, m_port));
   th.detach();
 }
