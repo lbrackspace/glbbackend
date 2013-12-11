@@ -15,8 +15,7 @@
 #include "glbbackend.hh"
 #include "SOAContainer.hh"
 #include "ServerSingleton.hh"
-
-const bool DEBUG = false;
+#include "GlbContainer.hh"
 
 GLBBackend::GLBBackend(const string & suffix) {
     setArgPrefix(suffix);
