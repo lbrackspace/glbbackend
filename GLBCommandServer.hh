@@ -7,8 +7,8 @@
 
 class GLBCommandServer {
  private:
-  std::string ip_address;
-  int port;
+  std::string m_ip_address = "default";
+  int m_port = -1;
   void addDomain(std::vector<std::string>& outLines, std::string line);
   void delDomain(std::vector<std::string>& outLines, std::string line);
   void setSOA(std::vector<std::string> &outLines, std::string line);
@@ -31,7 +31,7 @@ class GLBCommandServer {
  public:
   GLBCommandServer(const std::string ip, int port);
   void start();
-  int listener();
+  int listener(std::string ip, int port);
   virtual ~GLBCommandServer();
   const std::string& getIpAddress() const;
   void setIpAddress(const std::string& ip);
