@@ -28,12 +28,12 @@ const int STRBUFFSIZE = 4096;
 const boost::chrono::microseconds sdelay(50);
 
 GLBCommandServer::GLBCommandServer(std::string ip_address, int port) {
-  m_ip_address = ip_address;
-  m_port = port;
+    m_ip_address = ip_address;
+    m_port = port;
 }
 
 void GLBCommandServer::addDomain(std::vector<std::string>& outLines,
-        std::string line) {
+                                 std::string line) {
 
     ServerJsonBuilder jb;
     vector<string> inArgs;
@@ -73,7 +73,7 @@ void GLBCommandServer::addDomain(std::vector<std::string>& outLines,
 }
 
 void GLBCommandServer::delDomain(std::vector<std::string>& outLines,
-        std::string line) {
+                                 std::string line) {
     vector<string> inArgs;
     int nArgs = splitStr(inArgs, line, " ");
     string fqdn = inArgs[1];
@@ -88,8 +88,8 @@ void GLBCommandServer::delDomain(std::vector<std::string>& outLines,
     {
         lock_guard<shared_mutex> lock(glbMapMutex);
         jb.setFqdn(fqdn);
-        unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(
-                fqdn);
+        unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap
+                .find(fqdn);
         if (it == glbMap.end()) {
             jb.setStatus("FAILED");
             jb.setError(fqdn + " not found");
@@ -103,7 +103,7 @@ void GLBCommandServer::delDomain(std::vector<std::string>& outLines,
 }
 
 void GLBCommandServer::setSOA(std::vector<std::string>& outLines,
-        std::string line) {
+                              std::string line) {
 
     vector<string> args;
     ServerJsonBuilder jb;
@@ -119,14 +119,14 @@ void GLBCommandServer::setSOA(std::vector<std::string>& outLines,
     }
     string baseFQDNValue = args[1];
     string soaValue = joinStr(args, " ", 2);
-    setGlobalSOARecord(soaValue, baseFQDNValue);
+    setGlobalSOARecord(baseFQDNValue, soaValue);
     jb.setStatus("PASSED");
     outLines.push_back(jb.toJson());
     return;
 }
 
 void GLBCommandServer::setNS(std::vector<std::string>& outLines,
-        std::string line) {
+                             std::string line) {
     vector<string> args;
     int nArgs = splitStr(args, line, " ");
     ServerJsonBuilder jb;
@@ -151,7 +151,7 @@ void GLBCommandServer::setNS(std::vector<std::string>& outLines,
 }
 
 void GLBCommandServer::debugDomains(std::vector<std::string>& outLines,
-        std::string line) {
+                                    std::string line) {
     int nLoops = 1;
     vector<string> args;
     if (splitStr(args, line, " ") >= 2) {
@@ -163,9 +163,10 @@ void GLBCommandServer::debugDomains(std::vector<std::string>& outLines,
     }
     shared_lock<shared_mutex> lock(glbMapMutex);
     unordered_map<string, shared_ptr<GlbContainer> >::iterator mi;
-    unordered_map<string, shared_ptr<GlbContainer> >::iterator beg =
-            glbMap.begin();
-    unordered_map<string, shared_ptr<GlbContainer> >::iterator end = glbMap.end();
+    unordered_map<string, shared_ptr<GlbContainer> >::iterator beg = glbMap
+            .begin();
+    unordered_map<string, shared_ptr<GlbContainer> >::iterator end =
+            glbMap.end();
     for (int i = 0; i < nLoops; i++) {
         for (mi = beg; mi != end; mi++) {
             string key(mi->first);
@@ -177,7 +178,7 @@ void GLBCommandServer::debugDomains(std::vector<std::string>& outLines,
 }
 
 void GLBCommandServer::unknownCommand(std::vector<std::string>& outLines,
-        std::string line) {
+                                      std::string line) {
     ServerJsonBuilder jb;
     jb.setType("UNKNOWN COMMAND");
     jb.setError(line);
@@ -185,8 +186,8 @@ void GLBCommandServer::unknownCommand(std::vector<std::string>& outLines,
 }
 
 bool GLBCommandServer::decodeIP(const std::string inputStr,
-        std::string& errorMsg, int& ipt, int& ttl,
-        std::string& addr, std::string& attr) {
+                                std::string& errorMsg, int& ipt, int& ttl,
+                                std::string& addr, std::string& attr) {
     vector<string> ipVec;
     int nItems = splitStr(ipVec, inputStr, "-");
     if (nItems < 4) {
@@ -213,7 +214,7 @@ bool GLBCommandServer::decodeIP(const std::string inputStr,
 }
 
 void GLBCommandServer::snapshotDomain(std::vector<std::string>& outLines,
-        std::string line) {
+                                      std::string line) {
     vector<string> inArgs;
     vector<IPRecord> ips;
     int ipTTL;
@@ -248,8 +249,8 @@ void GLBCommandServer::snapshotDomain(std::vector<std::string>& outLines,
     shared_ptr<GlbContainer> glb;
     {
         shared_lock<shared_mutex> lock(glbMapMutex);
-        unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap.find(
-                fqdn);
+        unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap
+                .find(fqdn);
         snapPassedMsg = (snapPassed) ? "PASSED" : "FAILED";
         if (glbMap.find(fqdn) == glbMap.end()) {
             jb.setStatus("FAILED");
@@ -257,7 +258,7 @@ void GLBCommandServer::snapshotDomain(std::vector<std::string>& outLines,
             outLines.push_back(jb.toJson());
             return;
         }
-        glb = shared_ptr<GlbContainer > (it->second);
+        glb = shared_ptr<GlbContainer>(it->second);
     }
     (*glb).setIPs(ips);
     jb.setStatus(snapPassedMsg);
@@ -265,7 +266,7 @@ void GLBCommandServer::snapshotDomain(std::vector<std::string>& outLines,
 }
 
 void GLBCommandServer::getCounts(std::vector<std::string>& outLines,
-        std::string line) {
+                                 std::string line) {
     vector<string> args;
     ServerJsonBuilder jb;
     jb.setType("GET_COUNTS");
@@ -275,8 +276,8 @@ void GLBCommandServer::getCounts(std::vector<std::string>& outLines,
         for (int i = 1; i < nArgs; i++) {
             shared_lock<shared_mutex> lock(glbMapMutex);
             string fqdn(args[i]);
-            unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap
-                    .find(fqdn);
+            unordered_map<string, shared_ptr<GlbContainer> >::iterator it =
+                    glbMap.find(fqdn);
             if (it == glbMap.end()) {
                 jb.setStatus("FAILED");
                 jb.addError(string("fqdn " + fqdn + " doesn't exist"));
@@ -304,7 +305,7 @@ void GLBCommandServer::getCounts(std::vector<std::string>& outLines,
 }
 
 void GLBCommandServer::clearCounts(std::vector<std::string>& outLines,
-        std::string line) {
+                                   std::string line) {
     vector<string> args;
     int nArgs = splitStr(args, line, " ");
     bool failed = false;
@@ -314,8 +315,8 @@ void GLBCommandServer::clearCounts(std::vector<std::string>& outLines,
         shared_lock<shared_mutex> lock(glbMapMutex);
         for (int i = 1; i < nArgs; i++) {
             string fqdn = args[i];
-            unordered_map<string, shared_ptr<GlbContainer> >::iterator it = glbMap
-                    .find(fqdn);
+            unordered_map<string, shared_ptr<GlbContainer> >::iterator it =
+                    glbMap.find(fqdn);
             if (it == glbMap.end()) {
                 jb.addError("fqdn" + fqdn + " doesn't exist");
                 failed = true;
@@ -346,14 +347,15 @@ int GLBCommandServer::listener() {
     io_service ios;
     if (DEBUG) {
         lock_guard<mutex> lock(debugMutex);
-        cout << "Resolving ip Address " << m_ip_address
-                << " for port " << m_port << endl;
+        cout << "Resolving ip Address " << m_ip_address << " for port "
+             << m_port << endl;
     }
     ip::tcp::endpoint ep(ip::address::from_string(m_ip_address), m_port);
     if (DEBUG) {
         lock_guard<mutex> lock(debugMutex);
         cout << "Resolved endpoint to address: " << ep.address() << endl;
-        cout << "Listening on addr: " << ep.address() << " port " << m_port << endl;
+        cout << "Listening on addr: " << ep.address() << " port " << m_port
+             << endl;
         cout << "pdns pid: " << getpid() << endl;
     }
     ip::tcp::acceptor ac(ios, ep);
@@ -364,7 +366,7 @@ int GLBCommandServer::listener() {
         if (DEBUG) {
             lock_guard<mutex> lock(debugMutex);
             cout << "New connection recieved from: "
-                    << socket_stream->rdbuf()->remote_endpoint() << endl;
+                 << socket_stream->rdbuf()->remote_endpoint() << endl;
         }
         thread th(bind(&GLBCommandServer::server, this, socket_stream));
         th.detach();
@@ -372,7 +374,8 @@ int GLBCommandServer::listener() {
     return 0;
 }
 
-void GLBCommandServer::clearDomains(std::vector<std::string>& outLines, std::string line) {
+void GLBCommandServer::clearDomains(std::vector<std::string>& outLines,
+                                    std::string line) {
     using namespace std;
     using namespace boost;
     if (DEBUG) {
@@ -380,7 +383,7 @@ void GLBCommandServer::clearDomains(std::vector<std::string>& outLines, std::str
         cout << "Clearing all glbs" << endl;
     }
     {
-        lock_guard<shared_mutex > lock(glbMapMutex);
+        lock_guard<shared_mutex> lock(glbMapMutex);
         glbMap.clear();
     }
     ServerJsonBuilder jb;
@@ -415,7 +418,7 @@ int GLBCommandServer::server(
                 clock_t startTime = clock();
                 // Write Responses
                 outLines.clear();
-                for (unsigned int i = 0; i < inLines.size(); i++) { // For each message from the DMC
+                for (unsigned int i = 0; i < inLines.size(); i++) {  // For each message from the DMC
                     inCmdArgs.clear();
                     splitStr(inCmdArgs, inLines[i], " ");
                     if (cmdMatch(1, inCmdArgs, "DEBUG_DOMAINS")) {
@@ -441,7 +444,7 @@ int GLBCommandServer::server(
                     }
                 }
                 clock_t endTime = clock();
-                double processTime = static_cast<double> (endTime - startTime)
+                double processTime = static_cast<double>(endTime - startTime)
                         / CLOCKS_PER_SEC;
                 // Write outputBuffer
                 startTime = clock();
@@ -456,12 +459,13 @@ int GLBCommandServer::server(
                 outLines.clear();
                 //clock_t endTime = clock();
                 endTime = clock();
-                double writeTime = static_cast<double> (endTime - startTime)
+                double writeTime = static_cast<double>(endTime - startTime)
                         / CLOCKS_PER_SEC;
-                cout << "PROCESS LOOP FINISHED IN " << processTime << " seconds. Took "
-                        << writeTime << " seconds to write output." << endl;
+                cout << "PROCESS LOOP FINISHED IN " << processTime
+                     << " seconds. Took " << writeTime
+                     << " seconds to write output." << endl;
             } else {
-                inLines.push_back(line); // Otherwise store the line on the input buffer
+                inLines.push_back(line);  // Otherwise store the line on the input buffer
             }
         } catch (std::exception& ex) {
             cout << "Exception: " << ex.what() << endl;
@@ -471,32 +475,33 @@ int GLBCommandServer::server(
     try {
         if (DEBUG) {
             lock_guard<mutex> lock(debugMutex);
-            cout << "closeing socket" << tstream->rdbuf()->remote_endpoint() << endl;
+            cout << "closeing socket" << tstream->rdbuf()->remote_endpoint()
+                 << endl;
         }
     } catch (std::exception& ex) {
         if (DEBUG) {
             lock_guard<mutex> lock(debugMutex);
 
-            cout << "warning remote child socket closed prematurly: " << ex.what()
-                    << endl;
+            cout << "warning remote child socket closed prematurly: "
+                 << ex.what() << endl;
         }
     }
     try {
         tstream->close();
     } catch (std::exception& ex) {
-        cout << "exception: " << ex.what() << " while trying to close child socket"
-                << endl;
+        cout << "exception: " << ex.what()
+             << " while trying to close child socket" << endl;
     }
     return 0;
 }
 
 std::string GLBCommandServer::joinStr(const std::vector<std::string>& strIn,
-        std::string delim) {
+                                      std::string delim) {
     return boost::algorithm::join(strIn, delim);
 }
 
 std::string GLBCommandServer::joinStr(const std::vector<std::string>& strIn,
-        std::string delim, int start_i) {
+                                      std::string delim, int start_i) {
     vector<string> strVec;
     int ss = strIn.size();
     for (int i = start_i; i < ss; i++) {
@@ -506,11 +511,11 @@ std::string GLBCommandServer::joinStr(const std::vector<std::string>& strIn,
 }
 
 int GLBCommandServer::splitStr(std::vector<std::string>& svOut,
-        std::string strIn, std::string delim) {
+                               std::string strIn, std::string delim) {
     boost::algorithm::replace_all(strIn, "\n", "");
     boost::algorithm::replace_all(strIn, "\r", "");
     boost::algorithm::split(svOut, strIn, boost::algorithm::is_any_of(delim),
-            boost::token_compress_on);
+                            boost::token_compress_on);
     return svOut.size();
 }
 
@@ -520,7 +525,7 @@ void GLBCommandServer::start() {
 }
 
 bool GLBCommandServer::cmdMatch(int nArgs, const std::vector<std::string>& sv,
-        std::string expected) {
+                                std::string expected) {
     if (sv.size() >= (unsigned int) nArgs && sv[0].compare(expected) == 0) {
         return true;
     }

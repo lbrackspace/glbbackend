@@ -18,6 +18,7 @@
 class GLBBackend : public DNSBackend {
 public:
     GLBBackend(const string &suffix);
+    bool getSOA(const string &name, SOAData &soadata, DNSPacket *p);
     bool list(const string &target, int id);
     void lookup(const QType &type, const string &qdomain, DNSPacket *p, int zoneId);
     bool get(DNSResourceRecord &rr);
