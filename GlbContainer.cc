@@ -123,13 +123,14 @@ void GlbContainer::getIPSRandomAlgo(std::deque<IPRecord>& dq, int ipType) {
     std::vector<int> ip_indexes;
     int nRecords = ips.size();
     for (int i = 0; i < nRecords; i++) {
-        if (ips[i]->getIPType() & ipType != 0) {
+        if (ips[i]->getIPType() & (ipType != 0)) {
             ip_indexes.push_back(i);
         }
     }
     random_shuffle(ip_indexes.begin(), ip_indexes.end(), rn);
     int nShuffled = ip_indexes.size();
     for (int i = 0; i < nShuffled; i++) {
+
         dq.push_back(*(ips[ip_indexes[i]]));
     }
 }
@@ -158,6 +159,7 @@ int gcdreduce(std::vector<int> &reduced_weights, std::vector<int> &weights, int&
     }
     reduced_weights.clear();
     for (int i = 0; i < nWeights; i++) {
+
         reduced_weights.push_back(weights[i] / r);
     }
     return r;
@@ -176,3 +178,4 @@ bool matchesBaseFqdn(const std::string &fqdn, const std::string &baseFqdn) {
 
 boost::unordered_map<std::string, boost::shared_ptr<GlbContainer> > glbMap;
 boost::shared_mutex glbMapMutex;
+boost::mutex debugMutex;
