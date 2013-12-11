@@ -32,8 +32,8 @@ int main(int argc, char **argv) {
         bool status = sc.connect();
         cout << "startup client reported: " << boolalpha << status << endl;
     } else {
-        GLBCommandServer server(ip_addr_str, port);
-        server.listener();
+        GLBCommandServer server;
+        server.start(ip_addr_str, port);
     }
     return 0;
 }
