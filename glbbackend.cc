@@ -185,7 +185,9 @@ public:
 
 
         declare(suffix, "server-port", "Port for server to listen on for commands.", "8888");
-        declare(suffix, "server-ip", "IP for server to listen on for commands." , "127.0.0.1");
+        declare(suffix, "server-ip", "IP for server to listen on for commands.", "127.0.0.1");
+        declare(suffix, "dmc-ips", "IP Addresses for dmc controller", "127.0.0.1");
+        declare(suffix, "dmc-port", "Port for dmc controlers", "5050");
     }
 
     DNSBackend *make(const string &suffix = "") {
