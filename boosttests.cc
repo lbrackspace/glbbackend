@@ -7,6 +7,8 @@
 #include <vector>
 #include <boost/test/unit_test.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
+#include <boost/thread/locks.hpp>
 #include <string>
 #include <vector>
 #include <ctime>
@@ -102,13 +104,19 @@ BOOST_AUTO_TEST_CASE(test_IP_to_string) {
 }
 
 BOOST_AUTO_TEST_CASE(show_size_of_Glb) {
-    std::cout << "sizeof(GlbContainer):      " << sizeof (GlbContainer) << std::endl;
-    std::cout << "sizeof(IPRecord):          " << sizeof (IPRecord) << std::endl;
-    std::cout << "sizeof(SOAContainer):      " << sizeof (SOAContainer) << std::endl;
-    std::cout << "sizeof(ServerJsonBuilder): " << sizeof (ServerJsonBuilder) << std::endl;
-    std::cout << "sizeof(IpJson):            " << sizeof (IpJson) << std::endl;
-    std::cout << "sizeof(GLBCommandServer:   " << sizeof (GLBCommandServer) << std::endl;
-    std::cout << "sizeof(StartUpClient):     " << sizeof (StartUpClient) << std::endl;
+    std::cout << "sizeof(GlbContainer):              " << sizeof (GlbContainer) << std::endl;
+    std::cout << "sizeof(IPRecord):                  " << sizeof (IPRecord) << std::endl;
+    std::cout << "sizeof(SOAContainer):              " << sizeof (SOAContainer) << std::endl;
+    std::cout << "sizeof(ServerJsonBuilder):         " << sizeof (ServerJsonBuilder) << std::endl;
+    std::cout << "sizeof(IpJson):                    " << sizeof (IpJson) << std::endl;
+    std::cout << "sizeof(GLBCommandServer:           " << sizeof (GLBCommandServer) << std::endl;
+    std::cout << "sizeof(StartUpClient):             " << sizeof (StartUpClient) << std::endl;
+    std::cout << "sizeof(mutex):                    " << sizeof (boost::mutex) << std::endl;
+    std::cout << "sizeof(shared_mutex):              " << sizeof (boost::shared_mutex) << std::endl;
+    std::cout << "sizeof(lock_guard<shared_mutex>:   " << sizeof (boost::lock_guard<boost::shared_mutex>) << std::endl;
+    std::cout << "sizeof(shared_lock<shared_mutex>): " << sizeof (boost::shared_lock<boost::shared_mutex>) << std::endl;
+    std::cout << "sizeof(shared_ptr<int>:         " << sizeof (boost::shared_ptr<int>) << std::endl;
+
 }
 
 BOOST_AUTO_TEST_CASE(time_tests) {

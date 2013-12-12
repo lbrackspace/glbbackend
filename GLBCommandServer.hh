@@ -26,6 +26,7 @@ private:
             int start_i);
     int splitStr(std::vector<std::string>& svOut, std::string strIn,
             std::string delim);
+    void clearDomains(std::vector<std::string>& svOut, std::string strIn);
 public:
     GLBCommandServer();
     void start(std::string ip, int port);

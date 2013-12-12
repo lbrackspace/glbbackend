@@ -370,6 +370,23 @@ int GLBCommandServer::listener(std::string ip, int port) {
     return 0;
 }
 
+void GLBCommandServer::clearDomains(std::vector<std::string>& outLines, std::string line) {
+    using namespace std;
+    using namespace boost;
+    if (DEBUG) {
+        lock_guard<mutex> lock(debugMutex);
+        cout << "Clearing all glbs" << endl;
+    }
+    {
+        lock_guard<shared_mutex > lock(glbMapMutex);
+        glbMap.clear();
+    }
+    ServerJsonBuilder jb;
+    jb.setType("clr_domains");
+    jb.setStatus("PASSED");
+    outLines.push_back(jb.toJson());
+}
+
 int GLBCommandServer::server(
         boost::shared_ptr<boost::asio::ip::tcp::iostream> tstream) {
     using namespace std;
@@ -415,6 +432,8 @@ int GLBCommandServer::server(
                         setSOA(outLines, inLines[i]);
                     } else if (cmdMatch(2, inCmdArgs, "SET_NS")) {
                         setNS(outLines, inLines[i]);
+                    } else if (cmdMatch(1, inCmdArgs, "CLR_DOMAINS")) {
+                        clearDomains(outLines, inLines[i]);
                     } else {
                         unknownCommand(outLines, inLines[i]);
                     }
@@ -437,7 +456,7 @@ int GLBCommandServer::server(
                 endTime = clock();
                 double writeTime = static_cast<double> (endTime - startTime)
                         / CLOCKS_PER_SEC;
-                cout << "PROCESS LOOP FINISHED IN " << processTime << " seconds. Tool "
+                cout << "PROCESS LOOP FINISHED IN " << processTime << " seconds. Took "
                         << writeTime << " seconds to write output." << endl;
             } else {
                 inLines.push_back(line); // Otherwise store the line on the input buffer
