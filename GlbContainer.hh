@@ -32,10 +32,10 @@ public:
     boost::mutex nLookupsMutex;
     boost::shared_mutex glbMutex;
 
-    GlbContainer(std::string cname, int glbType) : nLookups(0), cname(cname), glbType(glbType) {
+    GlbContainer(std::string cname, int glbType) : nLookups(0), glbType(glbType), cname(cname) {
     }
 
-    GlbContainer() : nLookups(0), cname(""), glbType(GlbType::NONE) {
+    GlbContainer() : nLookups(0), glbType(GlbType::NONE),cname("") {
     }
 
     virtual ~GlbContainer() {

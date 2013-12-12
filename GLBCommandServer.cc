@@ -339,20 +339,31 @@ void GLBCommandServer::clearCounts(std::vector<std::string>& outLines,
 }
 
 int GLBCommandServer::listener(std::string ip, int port) {
+    using namespace std;
+    using namespace boost;
     io_service ios;
-    cout << "Resolving ip Address " << ip << " for port " << port
-            << endl;
+    if (DEBUG) {
+        lock_guard<mutex> lock(debugMutex);
+        cout << "Resolving ip Address " << ip
+                << " for port " << port << endl;
+    }
     ip::tcp::endpoint ep(ip::address::from_string(ip), port);
-    cout << "Resolved endpoint to address: " << ep.address() << endl;
-    cout << "Listening on addr: " << ep.address() << " port " << port << endl;
-    cout << "pdns pid: " << getpid() << endl;
+    if (DEBUG) {
+        lock_guard<mutex> lock(debugMutex);
+        cout << "Resolved endpoint to address: " << ep.address() << endl;
+        cout << "Listening on addr: " << ep.address() << " port " << port << endl;
+        cout << "pdns pid: " << getpid() << endl;
+    }
     ip::tcp::acceptor ac(ios, ep);
 
     while (true) {
         shared_ptr<ip::tcp::iostream> socket_stream(new ip::tcp::iostream());
         ac.accept(*socket_stream->rdbuf());
-        cout << "New connection recieved from: "
-                << socket_stream->rdbuf()->remote_endpoint() << endl;
+        if (DEBUG) {
+            lock_guard<mutex> lock(debugMutex);
+            cout << "New connection recieved from: "
+                    << socket_stream->rdbuf()->remote_endpoint() << endl;
+        }
         thread th(bind(&GLBCommandServer::server, this, socket_stream));
         th.detach();
     }
@@ -361,6 +372,8 @@ int GLBCommandServer::listener(std::string ip, int port) {
 
 int GLBCommandServer::server(
         boost::shared_ptr<boost::asio::ip::tcp::iostream> tstream) {
+    using namespace std;
+    using namespace boost;
     string line;
     vector<string> inLines;
     vector<string> outLines;
@@ -383,7 +396,7 @@ int GLBCommandServer::server(
                 clock_t startTime = clock();
                 // Write Responses
                 outLines.clear();
-                for (int i = 0; i < inLines.size(); i++) { // For each message from the DMC
+                for (unsigned int i = 0; i < inLines.size(); i++) { // For each message from the DMC
                     inCmdArgs.clear();
                     splitStr(inCmdArgs, inLines[i], " ");
                     if (cmdMatch(1, inCmdArgs, "DEBUG_DOMAINS")) {
@@ -435,10 +448,17 @@ int GLBCommandServer::server(
         }
     } while (!tstream->eof());
     try {
-        cout << "closeing socket" << tstream->rdbuf()->remote_endpoint() << endl;
+        if (DEBUG) {
+            lock_guard<mutex> lock(debugMutex);
+            cout << "closeing socket" << tstream->rdbuf()->remote_endpoint() << endl;
+        }
     } catch (std::exception& ex) {
-        cout << "warning remote child socket closed prematurly: " << ex.what()
-                << endl;
+        if (DEBUG) {
+            lock_guard<mutex> lock(debugMutex);
+
+            cout << "warning remote child socket closed prematurly: " << ex.what()
+                    << endl;
+        }
     }
     try {
         tstream->close();
@@ -480,7 +500,7 @@ void GLBCommandServer::start(string m_ip_address, int m_port) {
 
 bool GLBCommandServer::cmdMatch(int nArgs, const std::vector<std::string>& sv,
         std::string expected) {
-    if (sv.size() >= nArgs && sv[0].compare(expected) == 0) {
+    if (sv.size() >= (unsigned int) nArgs && sv[0].compare(expected) == 0) {
         return true;
     }
     return false;
