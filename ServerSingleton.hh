@@ -1,4 +1,6 @@
 #include <string>
+#include <boost/thread.hpp>
+
 
 #ifndef SERVERSINGLETON_HH_
 #define SERVERSINGLETON_HH_
@@ -13,5 +15,7 @@ private:
   ServerSingleton(const ServerSingleton &);
   ServerSingleton & operator = (const ServerSingleton &);
 };
+
+extern boost::mutex serverSingletonMutex;
 
 #endif /* SERVERSINGLETON_HH_ */
