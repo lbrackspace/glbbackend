@@ -27,7 +27,9 @@ const int STRBUFFSIZE = 4096;
 
 const boost::chrono::microseconds sdelay(50);
 
-GLBCommandServer::GLBCommandServer() {
+GLBCommandServer::GLBCommandServer(std::string ip_address, int port) {
+  m_ip_address = ip_address;
+  m_port = port;
 }
 
 void GLBCommandServer::addDomain(std::vector<std::string>& outLines,
@@ -338,20 +340,20 @@ void GLBCommandServer::clearCounts(std::vector<std::string>& outLines,
     }
 }
 
-int GLBCommandServer::listener(std::string ip, int port) {
+int GLBCommandServer::listener() {
     using namespace std;
     using namespace boost;
     io_service ios;
     if (DEBUG) {
         lock_guard<mutex> lock(debugMutex);
-        cout << "Resolving ip Address " << ip
-                << " for port " << port << endl;
+        cout << "Resolving ip Address " << m_ip_address
+                << " for port " << m_port << endl;
     }
-    ip::tcp::endpoint ep(ip::address::from_string(ip), port);
+    ip::tcp::endpoint ep(ip::address::from_string(m_ip_address), m_port);
     if (DEBUG) {
         lock_guard<mutex> lock(debugMutex);
         cout << "Resolved endpoint to address: " << ep.address() << endl;
-        cout << "Listening on addr: " << ep.address() << " port " << port << endl;
+        cout << "Listening on addr: " << ep.address() << " port " << m_port << endl;
         cout << "pdns pid: " << getpid() << endl;
     }
     ip::tcp::acceptor ac(ios, ep);
@@ -512,8 +514,8 @@ int GLBCommandServer::splitStr(std::vector<std::string>& svOut,
     return svOut.size();
 }
 
-void GLBCommandServer::start(string m_ip_address, int m_port) {
-    boost::thread th(bind(&GLBCommandServer::listener, this, m_ip_address, m_port));
+void GLBCommandServer::start() {
+    boost::thread th(bind(&GLBCommandServer::listener, this));
     th.detach();
 }
 

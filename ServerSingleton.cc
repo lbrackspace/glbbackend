@@ -22,8 +22,8 @@ ServerSingleton::ServerSingleton(std::string ip, int port) {
         boost::lock_guard<mutex> lock(debugMutex);
         cout << "Spinning up singleton GLBCommandServer at ip " << ip << " port " << port << endl;
     }
-    static GLBCommandServer server;
-    server.start(ip, port);
+    static GLBCommandServer server(ip, port);
+    server.start();
     if (DEBUG) {
         boost::lock_guard<mutex> lock(debugMutex);
         cout << "finished spinning up singleton GLBCommadnServer" << endl;
