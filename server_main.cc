@@ -6,6 +6,8 @@
 #include "GLBCommandServer.hh"
 #include "StartUpClient.hh"
 
+const boost::posix_time::seconds oneSecond(1);
+
 int usage(char *prog) {
     using namespace std;
     cout << "usage is " << prog << " <ip> <port>" << endl;
@@ -34,6 +36,10 @@ int main(int argc, char **argv) {
     } else {
         GLBCommandServer server;
         server.start(ip_addr_str, port);
+        while(true){
+            boost::this_thread::sleep(oneSecond);
+        }
+
     }
     return 0;
 }

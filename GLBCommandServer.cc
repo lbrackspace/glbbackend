@@ -357,15 +357,20 @@ int GLBCommandServer::listener(std::string ip, int port) {
     ip::tcp::acceptor ac(ios, ep);
 
     while (true) {
-        shared_ptr<ip::tcp::iostream> socket_stream(new ip::tcp::iostream());
-        ac.accept(*socket_stream->rdbuf());
-        if (DEBUG) {
+        try {
+            shared_ptr<ip::tcp::iostream> socket_stream(new ip::tcp::iostream());
+            ac.accept(*socket_stream->rdbuf());
+            if (DEBUG) {
+                lock_guard<mutex> lock(debugMutex);
+                cout << "New connection recieved from: "
+                        << socket_stream->rdbuf()->remote_endpoint() << endl;
+            }
+            thread th(bind(&GLBCommandServer::server, this, socket_stream));
+            th.detach();
+        } catch (std::exception &ex) {
             lock_guard<mutex> lock(debugMutex);
-            cout << "New connection recieved from: "
-                    << socket_stream->rdbuf()->remote_endpoint() << endl;
+            cout << "Exception caught while accepting connection to socket:" << ex.what() << endl;
         }
-        thread th(bind(&GLBCommandServer::server, this, socket_stream));
-        th.detach();
     }
     return 0;
 }
