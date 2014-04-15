@@ -16,7 +16,7 @@ def printf(format,*args): sys.stdout.write(format%args)
 
 def fprintf(fp,format,*args): fp.write(format%args)
 
-baseFQDN="rackexp.org"
+baseFQDN="glb.rackexp.org"
 
 def intToIp(n):
     return "%i.%i.%i.%i"%(n>>24,(n>>16)&255,(n>>8)&255,n&255)
@@ -79,17 +79,16 @@ for i in xrange(0,2):
     snapshot(fp,i,2)
 
 for i in xrange(1,4):
-    fp.write("ADD_DOMAIN ns%i.rackexp.org NONE\n"%i);
-    fp.write("SNAPSHOT ns%i.rackexp.org 4-30-127.0.0.1-1"%i)
+    fp.write("ADD_DOMAIN ns%i.%s NONE\n"%(i,baseFQDN));
+    fp.write("SNAPSHOT ns%i.%s 4-30-23.253.111.77-1"%(i,baseFQDN))
     fp.write(" 6-30-%s-1"%intToIp6(lo6+i))
     fp.write(" 44-30-BAD_IP-1\n")
 
-soa="ns1.rackexp.org. root.rackexp.org. 2013102907 28800 14400 3600000 300"
-baseFqdn="rackexp.org"
+soa="ns1.%s. root.%s. 2013102907 28800 14400 3600000 300"%(baseFQDN,baseFQDN)
 fp.write("SET_SOA %s %s\n"%(baseFQDN,soa))
 fp.write("SET_NS")
 for i in xrange(1,4):
-    fp.write(" ns%i.rackexp.org"%i)
+    fp.write(" ns%i.%s"%(i,baseFQDN))
 
 fp.write("\nOVER\n")
 fp.flush()
