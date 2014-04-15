@@ -11,12 +11,12 @@ libboost1.48-all-dev libmysqld-dev libldap2-dev libtool pkg-config
 Get a working copy of pdns source and the glbbackup configure.ac patch
 ----------------------------------------------------------------------
 wget http://utils.rackexp.org/pdns-3.3.tar
-wget http://utils.rackexp.org/glbbackend.patch
+wget http://utils.rackexp.org/u1204.patch
 
 untar and apply the patch
 -------------------------
 tar -xvf pdns-3.3.tar
-patch -p0 < glbbackend.patch
+patch -p0 < u1204.patch
 
 download the glbbackend code from github
 ----------------------------------------

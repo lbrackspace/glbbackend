@@ -1,0 +1,11 @@
+diff -ruN ./pdns-3.3/configure.ac ./new/configure.ac
+--- ./pdns-3.3/configure.ac	2013-07-05 06:30:36.000000000 +0000
++++ ./new/configure.ac	2014-04-04 19:23:23.000000000 +0000
+@@ -750,4 +750,5 @@
+ modules/goraclebackend/Makefile modules/mydnsbackend/Makefile \
+ modules/luabackend/Makefile modules/tinydnsbackend/Makefile \
+ modules/remotebackend/Makefile \
+-modules/randombackend/Makefile)
++modules/randombackend/Makefile \
++modules/glbbackend/Makefile)
+
